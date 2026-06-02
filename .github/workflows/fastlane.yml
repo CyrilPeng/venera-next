@@ -3,11 +3,11 @@ name: Validate Fastlane metadata
 on:
   workflow_dispatch:
   push:
-      branches: [ "master" ]
+      branches: [ "main" ]
       paths:
         - 'fastlane/**'
   pull_request:
-      branches: [ "master" ]
+      branches: [ "main" ]
       paths:
         - 'fastlane/**'
 
