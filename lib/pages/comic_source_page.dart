@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -284,7 +284,7 @@ class _BodyState extends State<_Body> {
 
   void help() {
     launchUrlString(
-      "https://github.com/venera-app/venera/blob/master/doc/comic_source.md",
+      "https://github.com/CyrilPeng/venera-next/blob/main/doc/comic_source.md",
     );
   }
 
@@ -443,7 +443,7 @@ class _ComicSourceListState extends State<_ComicSourceList> {
                     TextButton(
                       onPressed: () {
                         launchUrlString(
-                          "https://github.com/venera-app/venera/blob/master/doc/comic_source.md",
+                          "https://github.com/CyrilPeng/venera-next/blob/main/doc/comic_source.md",
                         );
                       },
                       child: Text("Help".tl),

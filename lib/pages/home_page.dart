@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:venera/components/components.dart';
@@ -605,7 +605,7 @@ class _ImportComicsWidgetState extends State<_ImportComicsWidget> {
           ),
           onPressed: () {
             launchUrlString(
-                "https://github.com/venera-app/venera/blob/master/doc/import_comic.md");
+                "https://github.com/CyrilPeng/venera-next/blob/main/doc/import_comic.md");
           },
         ).fixWidth(90).paddingRight(8),
         Button.filled(

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:display_mode/display_mode.dart';
 import 'package:flutter/foundation.dart';
@@ -68,7 +68,7 @@ Future<void> init() async {
   };
   if (App.isWindows) {
     // Report to the monitor thread that the app is running
-    // https://github.com/venera-app/venera/issues/343
+    // https://github.com/CyrilPeng/venera-next/issues
     Timer.periodic(const Duration(seconds: 1), (_) {
       const methodChannel = MethodChannel('venera/method_channel');
       methodChannel.invokeMethod("heartBeat");

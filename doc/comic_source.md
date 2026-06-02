@@ -1,4 +1,4 @@
-# Comic Source
+﻿# Comic Source
 
 ## Introduction
 
