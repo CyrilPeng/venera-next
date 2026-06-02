@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:venera/components/components.dart';
@@ -10,6 +10,7 @@ import 'package:venera/foundation/history.dart';
 import 'package:venera/foundation/local.dart';
 import 'package:venera/foundation/log.dart';
 import 'package:venera/pages/comic_details_page/comic_page.dart';
+import 'package:venera/pages/comic_archive_page.dart';
 import 'package:venera/pages/comic_source_page.dart';
 import 'package:venera/pages/downloading_page.dart';
 import 'package:venera/pages/follow_updates_page.dart';
@@ -17,6 +18,7 @@ import 'package:venera/pages/history_page.dart';
 import 'package:venera/pages/image_favorites_page/image_favorites_page.dart';
 import 'package:venera/pages/search_page.dart';
 import 'package:venera/utils/data_sync.dart';
+import 'package:venera/utils/comic_backup.dart';
 import 'package:venera/utils/import_comic.dart';
 import 'package:venera/utils/tags_translation.dart';
 import 'package:venera/utils/translations.dart';
@@ -132,17 +134,15 @@ class _SyncDataWidgetState extends State<_SyncDataWidget>
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            border: Border.all(color: Theme.of(context).colorScheme.primary),
             borderRadius: BorderRadius.circular(8),
           ),
           child: ListTile(
             leading: const Icon(Icons.sync),
             title: Text('Syncing Data'.tl),
-            trailing: const CircularProgressIndicator(strokeWidth: 2)
-                .fixWidth(18)
-                .fixHeight(18),
+            trailing: const CircularProgressIndicator(
+              strokeWidth: 2,
+            ).fixWidth(18).fixHeight(18),
           ),
         ),
       );
@@ -277,13 +277,13 @@ class _HistoryState extends State<_History> {
                 height: 56,
                 child: Row(
                   children: [
-                    Center(
-                      child: Text('History'.tl, style: ts.s18),
-                    ),
+                    Center(child: Text('History'.tl, style: ts.s18)),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.secondaryContainer,
                         borderRadius: BorderRadius.circular(8),
@@ -385,9 +385,7 @@ class _LocalState extends State<_Local> {
                 height: 56,
                 child: Row(
                   children: [
-                    Center(
-                      child: Text('Local'.tl, style: ts.s18),
-                    ),
+                    Center(child: Text('Local'.tl, style: ts.s18)),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       padding: const EdgeInsets.symmetric(
@@ -442,9 +440,11 @@ class _LocalState extends State<_Local> {
                           else
                             const _AnimatedDownloadingIcon(),
                           const SizedBox(width: 8),
-                          Text("@a Tasks".tlParams({
-                            'a': LocalManager().downloadingTasks.length,
-                          })),
+                          Text(
+                            "@a Tasks".tlParams({
+                              'a': LocalManager().downloadingTasks.length,
+                            }),
+                          ),
                         ],
                       ),
                       onPressed: () {
@@ -452,10 +452,14 @@ class _LocalState extends State<_Local> {
                       },
                     ),
                   const Spacer(),
-                  Button.filled(
-                    onPressed: import,
-                    child: Text("Import".tl),
-                  ),
+                  if (BackupConfig.fromSettings().isValid)
+                    Button.outlined(
+                      onPressed: () {
+                        context.to(() => const ComicArchivePage());
+                      },
+                      child: Text("Archive".tl),
+                    ).paddingRight(8),
+                  Button.filled(onPressed: import, child: Text("Import".tl)),
                 ],
               ).paddingHorizontal(16).paddingVertical(8),
             ],
@@ -532,9 +536,7 @@ class _ImportComicsWidgetState extends State<_ImportComicsWidget> {
           ? SizedBox(
               width: 600,
               height: height,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             )
           : RadioGroup<int>(
               groupValue: type,
@@ -577,19 +579,20 @@ class _ImportComicsWidgetState extends State<_ImportComicsWidget> {
                       type != 3 &&
                       type != 5)
                     CheckboxListTile(
-                        enabled: true,
-                        title: Text("Copy to app local path".tl),
-                        value: copyToLocalFolder,
-                        onChanged: (v) {
-                          setState(() {
-                            copyToLocalFolder = !copyToLocalFolder;
-                          });
-                        }).paddingHorizontal(8),
+                      enabled: true,
+                      title: Text("Copy to app local path".tl),
+                      value: copyToLocalFolder,
+                      onChanged: (v) {
+                        setState(() {
+                          copyToLocalFolder = !copyToLocalFolder;
+                        });
+                      },
+                    ).paddingHorizontal(8),
                   const SizedBox(height: 8),
                   Text(info).paddingHorizontal(24),
                 ],
               ),
-          ),
+            ),
       actions: [
         Button.text(
           child: Row(
@@ -605,14 +608,15 @@ class _ImportComicsWidgetState extends State<_ImportComicsWidget> {
           ),
           onPressed: () {
             launchUrlString(
-                "https://github.com/CyrilPeng/venera-next/blob/main/doc/import_comic.md");
+              "https://github.com/CyrilPeng/venera-next/blob/main/doc/import_comic.md",
+            );
           },
         ).fixWidth(90).paddingRight(8),
         Button.filled(
           isLoading: loading,
           onPressed: selectAndImport,
           child: Text("Select".tl),
-        )
+        ),
       ],
     );
   }
@@ -624,7 +628,9 @@ class _ImportComicsWidgetState extends State<_ImportComicsWidget> {
       loading = true;
     });
     var importer = ImportComic(
-        selectedFolder: selectedFolder, copyToLocal: copyToLocalFolder);
+      selectedFolder: selectedFolder,
+      copyToLocal: copyToLocalFolder,
+    );
     var result = switch (type) {
       0 => await importer.directory(true),
       1 => await importer.directory(false),
@@ -710,19 +716,21 @@ class _ComicSourceWidgetState extends State<_ComicSourceWidget> {
                 height: 56,
                 child: Row(
                   children: [
-                    Center(
-                      child: Text('Comic Source'.tl, style: ts.s18),
-                    ),
+                    Center(child: Text('Comic Source'.tl, style: ts.s18)),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.secondaryContainer,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child:
-                          Text(comicSources.length.toString(), style: ts.s12),
+                      child: Text(
+                        comicSources.length.toString(),
+                        style: ts.s12,
+                      ),
                     ),
                     const Spacer(),
                     const Icon(Icons.arrow_right),
@@ -738,10 +746,13 @@ class _ComicSourceWidgetState extends State<_ComicSourceWidget> {
                     children: comicSources.map((e) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).colorScheme.secondaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(e),
@@ -751,35 +762,33 @@ class _ComicSourceWidgetState extends State<_ComicSourceWidget> {
                 ),
               if (_availableUpdates > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: context.colorScheme.outlineVariant,
-                      width: 0.6,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.update,
-                        color: context.colorScheme.primary,
-                        size: 20,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "@c updates".tlParams({
-                          'c': _availableUpdates,
-                        }),
-                        style: ts.withColor(context.colorScheme.primary),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: context.colorScheme.outlineVariant,
+                          width: 0.6,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
-                  ),
-                )
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.update,
+                            color: context.colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "@c updates".tlParams({'c': _availableUpdates}),
+                            style: ts.withColor(context.colorScheme.primary),
+                          ),
+                        ],
+                      ),
+                    )
                     .toAlign(Alignment.centerLeft)
                     .paddingHorizontal(16)
                     .paddingBottom(8),
@@ -904,9 +913,7 @@ class _ImageFavoritesState extends State<ImageFavorites> {
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () {
-            context.to(
-              () => const ImageFavoritesPage()
-            );
+            context.to(() => const ImageFavoritesPage());
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -915,17 +922,18 @@ class _ImageFavoritesState extends State<ImageFavorites> {
                 height: 56,
                 child: Row(
                   children: [
-                    Center(
-                      child: Text('Image Favorites'.tl, style: ts.s18),
-                    ),
+                    Center(child: Text('Image Favorites'.tl, style: ts.s18)),
                     if (hasData)
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 8),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).colorScheme.secondaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -957,9 +965,7 @@ class _ImageFavoritesState extends State<ImageFavorites> {
                   1 => imageFavoritesCompute!.authors,
                   2 => imageFavoritesCompute!.comics,
                   _ => [],
-                })
-                    .paddingHorizontal(16)
-                    .paddingBottom(16),
+                }).paddingHorizontal(16).paddingBottom(16),
             ],
           ),
         ),
@@ -987,8 +993,9 @@ class _ImageFavoritesState extends State<ImageFavorites> {
         width: 96,
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
-          color:
-              displayType == type ? context.colorScheme.primaryContainer : null,
+          color: displayType == type
+              ? context.colorScheme.primaryContainer
+              : null,
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant,
             width: 0.6,
@@ -996,12 +1003,7 @@ class _ImageFavoritesState extends State<ImageFavorites> {
           borderRadius: BorderRadius.circular(radius),
         ),
         duration: const Duration(milliseconds: 200),
-        child: Center(
-          child: Text(
-            text,
-            style: ts.s16,
-          ),
-        ),
+        child: Center(child: Text(text, style: ts.s16)),
       ),
     );
   }
@@ -1012,9 +1014,7 @@ class _ImageFavoritesState extends State<ImageFavorites> {
     }
     var maxCount = data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: 164,
-      ),
+      constraints: BoxConstraints(maxHeight: 164),
       child: SingleChildScrollView(
         child: Column(
           key: ValueKey(displayType),
@@ -1025,9 +1025,7 @@ class _ImageFavoritesState extends State<ImageFavorites> {
               maxCount: maxCount,
               enableTranslation: displayType != 2,
               onTap: (text) {
-                context.to(
-                  () => ImageFavoritesPage(initialKeyword: text),
-                );
+                context.to(() => ImageFavoritesPage(initialKeyword: text));
               },
             );
           }).toList(),
@@ -1098,11 +1096,7 @@ class __ChartLineState extends State<_ChartLine>
           onTap: () {
             widget.onTap?.call(widget.text);
           },
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          )
+          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis)
               .paddingHorizontal(4)
               .toAlign(Alignment.centerLeft)
               .fixWidth(context.width > 600 ? 120 : 80)
@@ -1110,32 +1104,28 @@ class __ChartLineState extends State<_ChartLine>
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: LayoutBuilder(builder: (context, constrains) {
-            var width = constrains.maxWidth * widget.count / widget.maxCount;
-            return AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return Container(
-                  width: width * _controller.value,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    gradient: LinearGradient(
-                      colors: context.isDarkMode
-                          ? [
-                              Colors.blue.shade800,
-                              Colors.blue.shade500,
-                            ]
-                          : [
-                              Colors.blue.shade300,
-                              Colors.blue.shade600,
-                            ],
+          child: LayoutBuilder(
+            builder: (context, constrains) {
+              var width = constrains.maxWidth * widget.count / widget.maxCount;
+              return AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Container(
+                    width: width * _controller.value,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      gradient: LinearGradient(
+                        colors: context.isDarkMode
+                            ? [Colors.blue.shade800, Colors.blue.shade500]
+                            : [Colors.blue.shade300, Colors.blue.shade600],
+                      ),
                     ),
-                  ),
-                ).toAlign(Alignment.centerLeft);
-              },
-            );
-          }),
+                  ).toAlign(Alignment.centerLeft);
+                },
+              );
+            },
+          ),
         ),
         const SizedBox(width: 8),
         Text(

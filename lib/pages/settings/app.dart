@@ -1,4 +1,4 @@
-﻿part of 'settings_page.dart';
+part of 'settings_page.dart';
 
 class AppSettings extends StatefulWidget {
   const AppSettings({super.key});
@@ -13,10 +13,7 @@ class _AppSettingsState extends State<AppSettings> {
     return SmoothCustomScrollView(
       slivers: [
         SliverAppbar(title: Text("App".tl)),
-        _SettingPartTitle(
-          title: "Data".tl,
-          icon: Icons.storage,
-        ),
+        _SettingPartTitle(title: "Data".tl, icon: Icons.storage),
         ListTile(
           title: Text("Storage Path for local comics".tl),
           subtitle: Text(LocalManager().path, softWrap: false),
@@ -112,8 +109,9 @@ class _AppSettingsState extends State<AppSettings> {
             var controller = showLoadingDialog(context);
             var file = await selectFile(ext: ['venera', 'picadata']);
             if (file != null) {
-              var cacheFile =
-                  File(FilePath.join(App.cachePath, "import_data_temp"));
+              var cacheFile = File(
+                FilePath.join(App.cachePath, "import_data_temp"),
+              );
               await file.saveTo(cacheFile.path);
               try {
                 if (file.name.endsWith('picadata')) {
@@ -140,10 +138,15 @@ class _AppSettingsState extends State<AppSettings> {
           },
           actionTitle: 'Set'.tl,
         ).toSliver(),
-        _SettingPartTitle(
-          title: "User".tl,
-          icon: Icons.person_outline,
-        ),
+        _CallbackSetting(
+          title: "Comic Archive Backup".tl,
+          subtitle: "This is only used for CBZ archive backup and restore.".tl,
+          callback: () async {
+            showPopUpWidget(context, const _BackupWebdavSetting());
+          },
+          actionTitle: 'Set'.tl,
+        ).toSliver(),
+        _SettingPartTitle(title: "User".tl, icon: Icons.person_outline),
         SelectSetting(
           title: "Language".tl,
           settingKey: "language",
@@ -167,7 +170,8 @@ class _AppSettingsState extends State<AppSettings> {
                 final auth = LocalAuthentication();
                 final bool canAuthenticateWithBiometrics =
                     await auth.canCheckBiometrics;
-                final bool canAuthenticate = canAuthenticateWithBiometrics ||
+                final bool canAuthenticate =
+                    canAuthenticateWithBiometrics ||
                     await auth.isDeviceSupported();
                 if (!canAuthenticate) {
                   context.showMessage(message: "Biometrics not supported".tl);
@@ -205,62 +209,72 @@ class _LogsPageState extends State<LogsPage> {
         title: Text("Logs".tl),
         actions: [
           IconButton(
-              onPressed: () => setState(() {
-                    final RelativeRect position = RelativeRect.fromLTRB(
-                      MediaQuery.of(context).size.width,
-                      MediaQuery.of(context).padding.top + kToolbarHeight,
-                      0.0,
-                      0.0,
-                    );
-                    showMenu(context: context, position: position, items: [
-                      PopupMenuItem(
-                          child: Text("all"),
-                          onTap: () => setState(() => logLevelToShow = "all")
-                      ),
-                      PopupMenuItem(
-                          child: Text("info"),
-                          onTap: () => setState(() => logLevelToShow = "info")
-                      ),
-                      PopupMenuItem(
-                          child: Text("warning"),
-                          onTap: () => setState(() => logLevelToShow = "warning")
-                      ),
-                      PopupMenuItem(
-                          child: Text("error"),
-                          onTap: () => setState(() => logLevelToShow = "error")
-                      ),
-                    ]);
-              }),
-              icon: const Icon(Icons.filter_list_outlined)
+            onPressed: () => setState(() {
+              final RelativeRect position = RelativeRect.fromLTRB(
+                MediaQuery.of(context).size.width,
+                MediaQuery.of(context).padding.top + kToolbarHeight,
+                0.0,
+                0.0,
+              );
+              showMenu(
+                context: context,
+                position: position,
+                items: [
+                  PopupMenuItem(
+                    child: Text("all"),
+                    onTap: () => setState(() => logLevelToShow = "all"),
+                  ),
+                  PopupMenuItem(
+                    child: Text("info"),
+                    onTap: () => setState(() => logLevelToShow = "info"),
+                  ),
+                  PopupMenuItem(
+                    child: Text("warning"),
+                    onTap: () => setState(() => logLevelToShow = "warning"),
+                  ),
+                  PopupMenuItem(
+                    child: Text("error"),
+                    onTap: () => setState(() => logLevelToShow = "error"),
+                  ),
+                ],
+              );
+            }),
+            icon: const Icon(Icons.filter_list_outlined),
           ),
           IconButton(
-              onPressed: () => setState(() {
-                    final RelativeRect position = RelativeRect.fromLTRB(
-                      MediaQuery.of(context).size.width,
-                      MediaQuery.of(context).padding.top + kToolbarHeight,
-                      0.0,
-                      0.0,
-                    );
-                    showMenu(context: context, position: position, items: [
-                      PopupMenuItem(
-                        child: Text("Clear".tl),
-                        onTap: () => setState(() => Log.clear()),
-                      ),
-                      PopupMenuItem(
-                        child: Text("Disable Length Limitation".tl),
-                        onTap: () {
-                          Log.ignoreLimitation = true;
-                          context.showMessage(
-                              message: "Only valid for this run".tl);
-                        },
-                      ),
-                      PopupMenuItem(
-                        child: Text("Export".tl),
-                        onTap: () => saveLog(Log().toString()),
-                      ),
-                    ]);
-                  }),
-              icon: const Icon(Icons.more_horiz))
+            onPressed: () => setState(() {
+              final RelativeRect position = RelativeRect.fromLTRB(
+                MediaQuery.of(context).size.width,
+                MediaQuery.of(context).padding.top + kToolbarHeight,
+                0.0,
+                0.0,
+              );
+              showMenu(
+                context: context,
+                position: position,
+                items: [
+                  PopupMenuItem(
+                    child: Text("Clear".tl),
+                    onTap: () => setState(() => Log.clear()),
+                  ),
+                  PopupMenuItem(
+                    child: Text("Disable Length Limitation".tl),
+                    onTap: () {
+                      Log.ignoreLimitation = true;
+                      context.showMessage(
+                        message: "Only valid for this run".tl,
+                      );
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: Text("Export".tl),
+                    onTap: () => saveLog(Log().toString()),
+                  ),
+                ],
+              );
+            }),
+            icon: const Icon(Icons.more_horiz),
+          ),
         ],
       ),
       body: ListView.builder(
@@ -279,51 +293,56 @@ class _LogsPageState extends State<LogsPage> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(16)),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(16),
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(5, 0, 5, 1),
                           child: Text(logToShow[index].title),
                         ),
                       ),
-                      const SizedBox(
-                        width: 3,
-                      ),
+                      const SizedBox(width: 3),
                       Container(
                         decoration: BoxDecoration(
                           color: [
                             Theme.of(context).colorScheme.error,
                             Theme.of(context).colorScheme.errorContainer,
-                            Theme.of(context).colorScheme.primaryContainer
+                            Theme.of(context).colorScheme.primaryContainer,
                           ][logToShow[index].level.index],
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(16)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(16),
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(5, 0, 5, 1),
                           child: Text(
                             logToShow[index].level.name,
                             style: TextStyle(
-                                color: logToShow[index].level.index == 0
-                                    ? Colors.white
-                                    : Colors.black),
+                              color: logToShow[index].level.index == 0
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                   Text(logToShow[index].content),
-                  Text(logToShow[index].time
-                      .toString()
-                      .replaceAll(RegExp(r"\.\w+"), "")),
+                  Text(
+                    logToShow[index].time.toString().replaceAll(
+                      RegExp(r"\.\w+"),
+                      "",
+                    ),
+                  ),
                   TextButton(
                     onPressed: () {
                       Clipboard.setData(
-                          ClipboardData(text: logToShow[index].content));
+                        ClipboardData(text: logToShow[index].content),
+                      );
                     },
                     child: Text("Copy".tl),
                   ),
@@ -441,7 +460,8 @@ class _WebdavSettingState extends State<_WebdavSetting> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "When sync data, skip certain setting fields, which means these won't be uploaded / override.".tl,
+                              "When sync data, skip certain setting fields, which means these won't be uploaded / override."
+                                  .tl,
                             ),
                             const SizedBox(height: 12),
                             Row(
@@ -456,7 +476,9 @@ class _WebdavSettingState extends State<_WebdavSetting> {
                                   child: IconButton(
                                     icon: const Icon(Icons.open_in_new),
                                     onPressed: () {
-                                      launchUrlString("https://github.com/CyrilPeng/venera-next/blob/main/lib/foundation/appdata.dart#L138");
+                                      launchUrlString(
+                                        "https://github.com/CyrilPeng/venera-next/blob/main/lib/foundation/appdata.dart#L138",
+                                      );
                                     },
                                   ),
                                 ),
@@ -477,10 +499,7 @@ class _WebdavSettingState extends State<_WebdavSetting> {
               leading: Icon(Icons.sync),
               title: Text("Auto Sync Data".tl),
               contentPadding: EdgeInsets.zero,
-              trailing: Switch(
-                value: autoSync,
-                onChanged: onAutoSyncChanged,
-              ),
+              trailing: Switch(value: autoSync, onChanged: onAutoSyncChanged),
             ),
             const SizedBox(height: 12),
             RadioGroup<bool>(
@@ -493,13 +512,9 @@ class _WebdavSettingState extends State<_WebdavSetting> {
               child: Row(
                 children: [
                   Text("Operation".tl),
-                  Radio<bool>(
-                    value: true,
-                  ),
+                  Radio<bool>(value: true),
                   Text("Upload".tl),
-                  Radio<bool>(
-                    value: false,
-                  ),
+                  Radio<bool>(value: false),
                   Text("Download".tl),
                 ],
               ),
@@ -520,8 +535,9 @@ class _WebdavSettingState extends State<_WebdavSetting> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                                "Once the operation is successful, app will automatically sync data with the server."
-                                    .tl),
+                              "Once the operation is successful, app will automatically sync data with the server."
+                                  .tl,
+                            ),
                           ),
                         ],
                       ),
@@ -584,10 +600,210 @@ class _WebdavSettingState extends State<_WebdavSetting> {
                 },
                 child: Text("Continue".tl),
               ),
-            )
+            ),
           ],
         ).paddingHorizontal(16),
       ),
     );
+  }
+}
+
+class _BackupWebdavSetting extends StatefulWidget {
+  const _BackupWebdavSetting();
+
+  @override
+  State<_BackupWebdavSetting> createState() => _BackupWebdavSettingState();
+}
+
+class _BackupWebdavSettingState extends State<_BackupWebdavSetting> {
+  late final TextEditingController _urlController;
+  late final TextEditingController _userController;
+  late final TextEditingController _passController;
+  late final TextEditingController _remotePathController;
+  bool syncEnabled = false;
+  bool isTesting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final config = BackupConfig.fromSettings();
+    _urlController = TextEditingController(text: config.url);
+    _userController = TextEditingController(text: config.user);
+    _passController = TextEditingController(text: config.pass);
+    _remotePathController = TextEditingController(text: config.remotePath);
+    syncEnabled = appdata.settings['backupWebdavSyncEnabled'] == true;
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _userController.dispose();
+    _passController.dispose();
+    _remotePathController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopUpWidgetScaffold(
+      title: "Comic Archive Backup".tl,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "URL",
+                hintText: "A valid WebDav directory URL".tl,
+                border: OutlineInputBorder(),
+              ),
+              controller: _urlController,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Username".tl,
+                border: const OutlineInputBorder(),
+              ),
+              controller: _userController,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Password".tl,
+                border: const OutlineInputBorder(),
+              ),
+              controller: _passController,
+              obscureText: true,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Remote Path".tl,
+                hintText: "/venera_backup/",
+                border: const OutlineInputBorder(),
+              ),
+              controller: _remotePathController,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "This is only used for CBZ archive backup and restore."
+                          .tl,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: Icon(Icons.sync),
+              title: Text("Sync archive config".tl),
+              subtitle: Text(
+                "Sync archive WebDAV URL, username, password and remote path with app data."
+                    .tl,
+              ),
+              trailing: Switch(
+                value: syncEnabled,
+                onChanged: (v) {
+                  setState(() {
+                    syncEnabled = v;
+                  });
+                },
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Button.outlined(
+                    isLoading: isTesting,
+                    onPressed: testConnection,
+                    child: Text("Test Connection".tl),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Button.filled(
+                    isLoading: isTesting,
+                    onPressed: save,
+                    child: Text("Continue".tl),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ).paddingHorizontal(16),
+      ),
+    );
+  }
+
+  BackupConfig get currentConfig => BackupConfig(
+    url: _urlController.text,
+    user: _userController.text,
+    pass: _passController.text,
+    remotePath: _remotePathController.text,
+  );
+
+  Future<void> testConnection() async {
+    if (isTesting) return;
+    setState(() {
+      isTesting = true;
+    });
+    final result = await ComicBackupManager.testConnection(currentConfig);
+    if (!mounted) return;
+    setState(() {
+      isTesting = false;
+    });
+    if (result.error) {
+      context.showMessage(message: result.errorMessage!);
+    } else {
+      context.showMessage(message: "Connection successful".tl);
+    }
+  }
+
+  Future<void> save() async {
+    if (isTesting) return;
+    appdata.settings['backupWebdavSyncEnabled'] = syncEnabled;
+    final config = currentConfig;
+    if (!config.isValid && config.user.trim().isEmpty && config.pass.isEmpty) {
+      await BackupConfig.saveToSettings(config);
+      if (!mounted) return;
+      context.showMessage(message: "Saved".tl);
+      App.rootPop();
+      return;
+    }
+    setState(() {
+      isTesting = true;
+    });
+    final result = await ComicBackupManager.testConnection(config);
+    if (!mounted) return;
+    setState(() {
+      isTesting = false;
+    });
+    if (result.error) {
+      context.showMessage(message: result.errorMessage!);
+      context.showMessage(message: "Saved Failed".tl);
+    } else {
+      await BackupConfig.saveToSettings(config);
+      if (!mounted) return;
+      context.showMessage(message: "Saved".tl);
+      App.rootPop();
+    }
   }
 }
