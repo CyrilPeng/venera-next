@@ -97,6 +97,18 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '17'
+      - name: Configure Gradle plugin repositories
+        run: |
+          mkdir -p ~/.gradle/init.d
+          cat > ~/.gradle/init.d/plugin-repositories.gradle <<'EOF'
+          settingsEvaluated { settings ->
+              settings.pluginManagement.repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          EOF
       - name: Check rust-toolchain.toml
         run: rustup show
       - run: flutter pub get --enforce-lockfile
