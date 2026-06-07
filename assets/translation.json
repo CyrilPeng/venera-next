@@ -476,7 +476,8 @@
     "@a archives 路 @b": "@a 个归档 · @b",
     "Last sync failed": "上次同步失败",
     "Not synced yet": "尚未同步",
-    "Last synced": "上次同步"
+    "Last synced": "上次同步",
+    "Auto Clear History": "自动清理历史记录"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -955,6 +956,7 @@
     "@a archives 路 @b": "@a 個歸檔 · @b",
     "Last sync failed": "上次同步失敗",
     "Not synced yet": "尚未同步",
-    "Last synced": "上次同步"
+    "Last synced": "上次同步",
+    "Auto Clear History": "自動清理歷史記錄"
   }
 }

@@ -93,6 +93,18 @@ class _AppSettingsState extends State<AppSettings> {
           },
           actionTitle: 'Set'.tl,
         ).toSliver(),
+        _SliderSetting(
+          title: "Auto Clear History".tl,
+          settingsIndex: "historyRetentionDays",
+          interval: 7,
+          min: 0,
+          max: 182,
+          onChanged: () {
+            final retentionDays =
+                (appdata.settings['historyRetentionDays'] as num).round();
+            HistoryManager().clearExpiredHistory(retentionDays);
+          },
+        ).toSliver(),
         _CallbackSetting(
           title: "Export App Data".tl,
           callback: () async {

@@ -212,6 +212,7 @@ class Settings with ChangeNotifier {
     'enablePageAnimation': true,
     'language': 'system', // system, zh-CN, zh-TW, en-US
     'cacheSize': 2048, // in MB
+    'historyRetentionDays': 0, // 0 means disabled
     'downloadThreads': 5,
     'enableLongPressToZoom': true,
     'longPressZoomPosition': "press", // press, center
