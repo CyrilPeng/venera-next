@@ -129,7 +129,12 @@ class FileDownloader {
       // get file size
       await _createTasks();
 
-      if (_canceled) return;
+      if (_canceled) {
+        await _file?.close();
+        _file = null;
+        resultStream.close();
+        return;
+      }
 
       // check if file is downloaded
       if (_currentBytes >= _fileSize) {
