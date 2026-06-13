@@ -32,7 +32,9 @@ Future<void> runThrottledTasks<T>(
         }
         final task = tasks[nextIndex];
         nextIndex++;
-        if (throttleEvery > 0 && nextIndex % throttleEvery == 0) {
+        if (throttleEvery > 0 &&
+            nextIndex < tasks.length &&
+            nextIndex % throttleEvery == 0) {
           throttleGate = wait(_throttleDelay(nextIndex));
         }
         return task;

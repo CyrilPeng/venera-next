@@ -46,7 +46,7 @@ void main() {
     await pumpEventQueue();
 
     expect(started, [0, 1, 2, 3, 4, 5]);
-    expect(delays, [const Duration(seconds: 4), const Duration(seconds: 7)]);
+    expect(delays, [const Duration(seconds: 4)]);
     expect(maxActive, 3);
 
     for (final blocker in blockers.skip(3)) {
@@ -56,5 +56,23 @@ void main() {
 
     expect(completed, hasLength(6));
     expect(maxActive, 3);
+  });
+
+  test('runThrottledTasks does not wait after final throttled batch', () async {
+    final finalDelay = Completer<void>();
+    var delayCount = 0;
+
+    await runThrottledTasks<int>(
+      [0, 1, 2],
+      concurrency: 3,
+      throttleEvery: 3,
+      delay: (duration) {
+        delayCount++;
+        return finalDelay.future;
+      },
+      run: (_) async {},
+    ).timeout(const Duration(milliseconds: 500));
+
+    expect(delayCount, 0);
   });
 }
