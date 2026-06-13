@@ -1,4 +1,5 @@
-import 'dart:async' show Future;
+import 'dart:async' show Completer, Future;
+import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:venera/foundation/comic_type.dart';
@@ -35,13 +36,40 @@ class CachedImageProvider
 
   static const _kMaxLoadingCount = 8;
 
+  static final _thumbnailLoadSlots = _AsyncSemaphore(_kMaxLoadingCount + 1);
+
+  @visibleForTesting
+  static Future<T> debugRunWithThumbnailSlot<T>(
+    Future<T> Function() task, {
+    void Function()? checkStop,
+  }) {
+    return _runWithThumbnailSlot(task, checkStop: checkStop);
+  }
+
+  static Future<T> _runWithThumbnailSlot<T>(
+    Future<T> Function() task, {
+    void Function()? checkStop,
+  }) {
+    return _thumbnailLoadSlots.run(() async {
+      checkStop?.call();
+      loadingCount++;
+      try {
+        return await task();
+      } finally {
+        loadingCount--;
+      }
+    });
+  }
+
   @override
   Future<Uint8List> load(chunkEvents, checkStop) async {
-    while(loadingCount > _kMaxLoadingCount) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      checkStop();
-    }
-    loadingCount++;
+    return _runWithThumbnailSlot(
+      () => _loadImage(chunkEvents, checkStop),
+      checkStop: checkStop,
+    );
+  }
+
+  Future<Uint8List> _loadImage(chunkEvents, checkStop) async {
     try {
       if(url.startsWith("file://")) {
         var file = File(url.substring(7));
@@ -77,9 +105,6 @@ class CachedImageProvider
       }
       rethrow;
     }
-    finally {
-      loadingCount--;
-    }
   }
 
   @override
@@ -89,4 +114,41 @@ class CachedImageProvider
 
   @override
   String get key => url + (sourceKey ?? "") + (cid ?? "");
+}
+
+class _AsyncSemaphore {
+  final int maxConcurrent;
+
+  int _active = 0;
+
+  final _waiters = Queue<Completer<void>>();
+
+  _AsyncSemaphore(this.maxConcurrent);
+
+  Future<T> run<T>(Future<T> Function() task) async {
+    await _acquire();
+    try {
+      return await task();
+    } finally {
+      _release();
+    }
+  }
+
+  Future<void> _acquire() {
+    if (_active < maxConcurrent) {
+      _active++;
+      return Future.value();
+    }
+    final completer = Completer<void>();
+    _waiters.add(completer);
+    return completer.future;
+  }
+
+  void _release() {
+    if (_waiters.isNotEmpty) {
+      _waiters.removeFirst().complete();
+      return;
+    }
+    _active--;
+  }
 }
