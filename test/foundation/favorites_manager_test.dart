@@ -29,6 +29,59 @@ bool _sqliteAvailable() {
 
 void main() {
   test(
+    'empty batch favorite operations do not notify listeners',
+    () async {
+      final dataDir = Directory.systemTemp.createTempSync(
+        'venera-favorites-data-',
+      );
+      final cacheDir = Directory.systemTemp.createTempSync(
+        'venera-favorites-cache-',
+      );
+      addTearDown(() {
+        try {
+          LocalFavoritesManager().close();
+        } catch (_) {
+          // ignore cleanup failures in partially initialized tests
+        }
+        LocalFavoritesManager.cache = null;
+        if (dataDir.existsSync()) {
+          dataDir.deleteSync(recursive: true);
+        }
+        if (cacheDir.existsSync()) {
+          cacheDir.deleteSync(recursive: true);
+        }
+      });
+
+      App.dataPath = dataDir.path;
+      App.cachePath = cacheDir.path;
+      LocalFavoritesManager.cache = null;
+
+      final manager = LocalFavoritesManager();
+      await manager.init();
+      manager.createFolder('source');
+      manager.createFolder('target');
+
+      var notifyCount = 0;
+      void listener() {
+        notifyCount++;
+      }
+
+      manager.addListener(listener);
+      addTearDown(() => manager.removeListener(listener));
+
+      manager.batchMoveFavorites('source', 'target', <FavoriteItem>[]);
+      manager.batchCopyFavorites('source', 'target', <FavoriteItem>[]);
+      manager.batchDeleteComics('source', <FavoriteItem>[]);
+      manager.batchDeleteComicsInAllFolders([]);
+
+      expect(notifyCount, 0);
+      expect(manager.count('source'), 0);
+      expect(manager.count('target'), 0);
+    },
+    skip: _sqliteAvailable() ? false : 'sqlite3 native library is unavailable',
+  );
+
+  test(
     'batchMoveFavorites notifies after counts are updated',
     () async {
       final dataDir = Directory.systemTemp.createTempSync(

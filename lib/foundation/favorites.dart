@@ -800,6 +800,9 @@ class LocalFavoritesManager with ChangeNotifier {
     if (!existsFolder(targetFolder)) {
       throw Exception("Target folder does not exist");
     }
+    if (items.isEmpty) {
+      return;
+    }
 
     _db.execute("BEGIN TRANSACTION");
     var displayOrder = maxValue(targetFolder) + 1;
@@ -850,6 +853,9 @@ class LocalFavoritesManager with ChangeNotifier {
     }
     if (!existsFolder(targetFolder)) {
       throw Exception("Target folder does not exist");
+    }
+    if (items.isEmpty) {
+      return;
     }
 
     _db.execute("BEGIN TRANSACTION");
@@ -919,6 +925,9 @@ class LocalFavoritesManager with ChangeNotifier {
   }
 
   void batchDeleteComics(String folder, List<FavoriteItem> comics) {
+    if (comics.isEmpty) {
+      return;
+    }
     _db.execute("BEGIN TRANSACTION");
     try {
       for (var comic in comics) {
@@ -949,6 +958,9 @@ class LocalFavoritesManager with ChangeNotifier {
   }
 
   void batchDeleteComicsInAllFolders(List<ComicID> comics) {
+    if (comics.isEmpty) {
+      return;
+    }
     _db.execute("BEGIN TRANSACTION");
     var folderNames = _getFolderNamesWithDB();
     try {
