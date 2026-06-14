@@ -79,13 +79,25 @@ abstract class ImageDownloader {
       if (result is Future) {
         result = await result;
       }
-      if (result is! Map<String, dynamic>) {
-        return null;
-      }
-      return result;
+      return _normalizeImageLoadConfig(result);
     } finally {
       onLoadFailed.free();
     }
+  }
+
+  static Map<String, dynamic>? _normalizeImageLoadConfig(dynamic result) {
+    if (result is! Map) {
+      return null;
+    }
+    final config = <String, dynamic>{};
+    for (final entry in result.entries) {
+      final key = entry.key;
+      if (key is! String) {
+        return null;
+      }
+      config[key] = entry.value;
+    }
+    return config;
   }
 
   static Stream<ImageDownloadProgress> loadThumbnail(
