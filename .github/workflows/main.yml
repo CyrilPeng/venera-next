@@ -232,6 +232,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body_path: release_notes.md
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             outputs/*.ipa
             outputs/*.dmg

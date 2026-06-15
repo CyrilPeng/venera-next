@@ -59,8 +59,8 @@ def main() -> None:
     args = parser.parse_args()
 
     tag = args.tag.strip()
-    if not re.fullmatch(r"v\d+\.\d+\.\d+", tag):
-        fail(f"Release tag must look like v1.2.3, got {tag!r}")
+    if not re.fullmatch(r"v\d+\.\d+\.\d+(?:-rc\.\d+)?", tag):
+        fail(f"Release tag must look like v1.2.3 or v1.2.3-rc.1, got {tag!r}")
 
     validate_pubspec_version(tag)
     validate_flutter_rust_bridge_lock()
