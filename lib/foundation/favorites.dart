@@ -219,6 +219,10 @@ class LocalFavoritesManager with ChangeNotifier {
 
   var _hashedIds = <int, int>{};
 
+  Future<void>? _hashedIdsRefresh;
+
+  bool _isClosed = false;
+
   int get totalComics {
     return _hashedIds.length;
   }
@@ -228,6 +232,7 @@ class LocalFavoritesManager with ChangeNotifier {
   }
 
   Future<void> init() async {
+    _isClosed = false;
     counts = {};
     _dbPath = "${App.dataPath}/local_favorite.db";
     _db = openSqliteDatabase(_dbPath);
@@ -288,17 +293,38 @@ class LocalFavoritesManager with ChangeNotifier {
     for (var folder in folderNames) {
       counts[folder] = count(folder);
     }
-    _initHashedIds(folderNames, _dbPath).then((value) {
-      _hashedIds = value;
-      notifyListeners();
-    });
+    _refreshHashedIds(folderNames);
   }
 
   void refreshHashedIds() {
-    _initHashedIds(folderNames, _dbPath).then((value) {
-      _hashedIds = value;
-      notifyListeners();
-    });
+    _refreshHashedIds(folderNames);
+  }
+
+  void _refreshHashedIds(List<String> folders) {
+    if (folders.isEmpty) {
+      _hashedIds = {};
+      _hashedIdsRefresh = Future.value();
+      return;
+    }
+    late Future<void> refresh;
+    refresh = _initHashedIds(folders, _dbPath).then(
+      (value) {
+        if (_isClosed || !identical(_hashedIdsRefresh, refresh)) {
+          return;
+        }
+        _hashedIds = value;
+        notifyListeners();
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        Log.error("LocalFavoritesManager", error, stackTrace);
+      },
+    );
+    _hashedIdsRefresh = refresh;
+  }
+
+  @visibleForTesting
+  Future<void> debugWaitForHashedIdsRefresh() async {
+    await _hashedIdsRefresh;
   }
 
   void reduceHashedId(String id, int type) {
@@ -1413,6 +1439,7 @@ class LocalFavoritesManager with ChangeNotifier {
   }
 
   void close() {
+    _isClosed = true;
     _db.dispose();
   }
 

@@ -196,6 +196,15 @@ class ComicSourceParser {
     return JsEngine().runCode("ComicSource.sources.$_key.$index");
   }
 
+  Res<List<Comic>> _parseComicListResult(dynamic value, String subDataKey) {
+    final data = _normalizeComicSourceStringKeyedMap(value);
+    final comics = _normalizeComicSourceComicList(data?["comics"], _key!);
+    if (data == null || comics == null) {
+      throw "Invalid data";
+    }
+    return Res(comics, subData: data[subDataKey]);
+  }
+
   AccountConfig? _loadAccountConfig() {
     if (!_checkExists("account")) {
       return null;
@@ -624,13 +633,7 @@ class ComicSourceParser {
             ComicSource.sources.$_key.categoryComics.ranking.load(
               ${jsonEncode(option)}, ${jsonEncode(page)})
           """);
-            return Res(
-              List.generate(
-                res["comics"].length,
-                (index) => Comic.fromJson(res["comics"][index], _key!),
-              ),
-              subData: res["maxPage"],
-            );
+            return _parseComicListResult(res, "maxPage");
           } catch (e, s) {
             Log.error("Network", "$e\n$s");
             return Res.error(e.toString());
@@ -643,13 +646,7 @@ class ComicSourceParser {
             ComicSource.sources.$_key.categoryComics.ranking.loadWithNext(
               ${jsonEncode(option)}, ${jsonEncode(next)})
           """);
-            return Res(
-              List.generate(
-                res["comics"].length,
-                (index) => Comic.fromJson(res["comics"][index], _key!),
-              ),
-              subData: res["next"],
-            );
+            return _parseComicListResult(res, "next");
           } catch (e, s) {
             Log.error("Network", "$e\n$s");
             return Res.error(e.toString());
@@ -676,13 +673,7 @@ class ComicSourceParser {
                 ${jsonEncode(page)}
               )
             """);
-          return Res(
-            List.generate(
-              res["comics"].length,
-              (index) => Comic.fromJson(res["comics"][index], _key!),
-            ),
-            subData: res["maxPage"],
-          );
+          return _parseComicListResult(res, "maxPage");
         } catch (e, s) {
           Log.error("Network", "$e\n$s");
           return Res.error(e.toString());
@@ -727,13 +718,7 @@ class ComicSourceParser {
           ComicSource.sources.$_key.search.load(
             ${jsonEncode(keyword)}, ${jsonEncode(searchOption)}, ${jsonEncode(page)})
         """);
-          return Res(
-            List.generate(
-              res["comics"].length,
-              (index) => Comic.fromJson(res["comics"][index], _key!),
-            ),
-            subData: res["maxPage"],
-          );
+          return _parseComicListResult(res, "maxPage");
         } catch (e, s) {
           Log.error("Network", "$e\n$s");
           return Res.error(e.toString());
@@ -746,13 +731,7 @@ class ComicSourceParser {
           ComicSource.sources.$_key.search.loadNext(
             ${jsonEncode(keyword)}, ${jsonEncode(searchOption)}, ${jsonEncode(next)})
         """);
-          return Res(
-            List.generate(
-              res["comics"].length,
-              (index) => Comic.fromJson(res["comics"][index], _key!),
-            ),
-            subData: res["next"],
-          );
+          return _parseComicListResult(res, "next");
         } catch (e, s) {
           Log.error("Network", "$e\n$s");
           return Res.error(e.toString());
@@ -857,13 +836,7 @@ class ComicSourceParser {
             ComicSource.sources.$_key.favorites.loadComics(
               ${jsonEncode(page)}, ${jsonEncode(folder)})
           """);
-            return Res(
-              List.generate(
-                res["comics"].length,
-                (index) => Comic.fromJson(res["comics"][index], _key!),
-              ),
-              subData: res["maxPage"],
-            );
+            return _parseComicListResult(res, "maxPage");
           } catch (e, s) {
             Log.error("Network", "$e\n$s");
             return Res.error(e.toString());
@@ -882,13 +855,7 @@ class ComicSourceParser {
             ComicSource.sources.$_key.favorites.loadNext(
               ${jsonEncode(next)}, ${jsonEncode(folder)})
           """);
-            return Res(
-              List.generate(
-                res["comics"].length,
-                (index) => Comic.fromJson(res["comics"][index], _key!),
-              ),
-              subData: res["next"],
-            );
+            return _parseComicListResult(res, "next");
           } catch (e, s) {
             Log.error("Network", "$e\n$s");
             return Res.error(e.toString());

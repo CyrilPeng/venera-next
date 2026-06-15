@@ -97,4 +97,32 @@ void main() {
     expect(debugNormalizeComicSourceStringList('bad'), isNull);
     expect(debugNormalizeComicSourceStringList(['1.jpg', 2]), isNull);
   });
+
+  test('normalize comic list accepts dynamic item maps', () {
+    final comics = debugNormalizeComicSourceComicList([
+      <dynamic, dynamic>{
+        'title': 'Comic A',
+        'cover': 'cover.jpg',
+        'id': 'a',
+        'tags': ['tag'],
+      },
+    ], 'source');
+
+    expect(comics, hasLength(1));
+    expect(comics!.single.title, 'Comic A');
+    expect(comics.single.sourceKey, 'source');
+    expect(comics.single.tags, ['tag']);
+  });
+
+  test('normalize comic list rejects invalid item maps', () {
+    expect(debugNormalizeComicSourceComicList(null, 'source'), isNull);
+    expect(debugNormalizeComicSourceComicList('bad', 'source'), isNull);
+    expect(debugNormalizeComicSourceComicList(['bad'], 'source'), isNull);
+    expect(
+      debugNormalizeComicSourceComicList([
+        <dynamic, dynamic>{1: 'bad'},
+      ], 'source'),
+      isNull,
+    );
+  });
 }

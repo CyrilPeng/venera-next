@@ -54,6 +54,14 @@ List<String>? debugNormalizeComicSourceStringList(dynamic value) {
   return _normalizeComicSourceStringList(value);
 }
 
+@visibleForTesting
+List<Comic>? debugNormalizeComicSourceComicList(
+  dynamic value,
+  String sourceKey,
+) {
+  return _normalizeComicSourceComicList(value, sourceKey);
+}
+
 Map<String, dynamic>? _normalizeComicSourceLoadingConfig(dynamic value) {
   return _normalizeComicSourceStringKeyedMap(value);
 }
@@ -85,6 +93,21 @@ List<String>? _normalizeComicSourceStringList(dynamic value) {
     list.add(item);
   }
   return list;
+}
+
+List<Comic>? _normalizeComicSourceComicList(dynamic value, String sourceKey) {
+  if (value is! List) {
+    return null;
+  }
+  var comics = <Comic>[];
+  for (var item in value) {
+    final comic = _normalizeComicSourceStringKeyedMap(item);
+    if (comic == null) {
+      return null;
+    }
+    comics.add(Comic.fromJson(comic, sourceKey));
+  }
+  return comics;
 }
 
 Map<String, Map<String, dynamic>>? _normalizeComicSourceSettings(

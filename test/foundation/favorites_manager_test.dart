@@ -37,7 +37,8 @@ void main() {
       final cacheDir = Directory.systemTemp.createTempSync(
         'venera-favorites-cache-',
       );
-      addTearDown(() {
+      addTearDown(() async {
+        await LocalFavoritesManager().debugWaitForHashedIdsRefresh();
         try {
           LocalFavoritesManager().close();
         } catch (_) {
@@ -90,7 +91,8 @@ void main() {
       final cacheDir = Directory.systemTemp.createTempSync(
         'venera-favorites-cache-',
       );
-      addTearDown(() {
+      addTearDown(() async {
+        await LocalFavoritesManager().debugWaitForHashedIdsRefresh();
         try {
           LocalFavoritesManager().close();
         } catch (_) {
