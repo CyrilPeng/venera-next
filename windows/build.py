@@ -19,7 +19,10 @@ CHINESE_TRANSLATION_URL = (
 
 
 def run(command):
-    subprocess.run(command, check=True)
+    executable = shutil.which(command[0])
+    if executable is None:
+        raise FileNotFoundError(command[0])
+    subprocess.run([executable, *command[1:]], check=True)
 
 
 def read_version():
