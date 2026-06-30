@@ -195,10 +195,10 @@ class _ReaderSettingsState extends State<ReaderSettings> {
           title: "Reading mode".tl,
           settingKey: "readerMode",
           optionTranslation: {
+            "waterfallTopToBottom": "Waterfall (Top to Bottom)".tl,
             "galleryLeftToRight": "Gallery (Left to Right)".tl,
             "galleryRightToLeft": "Gallery (Right to Left)".tl,
             "galleryTopToBottom": "Gallery (Top to Bottom)".tl,
-            "waterfallTopToBottom": "Waterfall (Top to Bottom)".tl,
             "continuousLeftToRight": "Continuous (Left to Right)".tl,
             "continuousRightToLeft": "Continuous (Right to Left)".tl,
             "continuousTopToBottom": "Continuous (Top to Bottom)".tl,

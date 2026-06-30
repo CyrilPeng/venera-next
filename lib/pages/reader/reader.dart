@@ -783,10 +783,10 @@ mixin class _ReaderWindow {
 }
 
 enum ReaderMode {
+  waterfallTopToBottom('waterfallTopToBottom'),
   galleryLeftToRight('galleryLeftToRight'),
   galleryRightToLeft('galleryRightToLeft'),
   galleryTopToBottom('galleryTopToBottom'),
-  waterfallTopToBottom('waterfallTopToBottom'),
   continuousTopToBottom('continuousTopToBottom'),
   continuousLeftToRight('continuousLeftToRight'),
   continuousRightToLeft('continuousRightToLeft');
@@ -812,7 +812,7 @@ enum ReaderMode {
         return mode;
       }
     }
-    return galleryLeftToRight;
+    return waterfallTopToBottom;
   }
 }
 
