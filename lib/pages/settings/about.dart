@@ -261,12 +261,15 @@ class _ChangelogMarkdownBlock extends StatelessWidget {
   }
 }
 
-Future<bool> checkUpdate() async {
+Future<String?> checkUpdate() async {
   var remoteVersion =
       await _fetchUpdateVersion(_fetchPubspecVersion, "Update Pubspec") ??
       await _fetchUpdateVersion(_fetchLatestReleaseVersion, "Latest Release");
-  if (remoteVersion == null) return false;
-  return _compareVersion(remoteVersion, App.version);
+  if (remoteVersion == null) return null;
+  if (_compareVersion(remoteVersion, App.version)) {
+    return remoteVersion;
+  }
+  return null;
 }
 
 Future<String?> _fetchUpdateVersion(
@@ -313,8 +316,8 @@ Future<void> checkUpdateUi([
   bool delay = false,
 ]) async {
   try {
-    var value = await checkUpdate();
-    if (value) {
+    var newVersion = await checkUpdate();
+    if (newVersion != null) {
       if (delay) {
         await Future.delayed(const Duration(seconds: 2));
       }
@@ -325,7 +328,8 @@ Future<void> checkUpdateUi([
           return ContentDialog(
             title: "New version available".tl,
             content: Text(
-              "A new version is available. Do you want to update now?".tl,
+              "A new version $newVersion is available. Do you want to update now?"
+                  .tl,
             ).paddingHorizontal(16),
             actions: [
               Button.text(
