@@ -333,8 +333,8 @@ Future<void> checkUpdateUi([
           return ContentDialog(
             title: "New version available".tl,
             content: Text(
-              "A new version $newVersion is available. Do you want to update now?"
-                  .tl,
+              "A new version @v is available. Do you want to update now?"
+                  .tlParams({"v": newVersion}),
             ).paddingHorizontal(16),
             actions: [
               Button.text(

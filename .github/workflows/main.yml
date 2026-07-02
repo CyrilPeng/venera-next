@@ -186,6 +186,7 @@ jobs:
           sudo rm -rf build/linux/arch/pkg
           sudo rm -rf build/linux/arch/src
           sudo rm -rf build/linux/arch/PKGBUILD
+          rm -f build/linux/arch/venera-debug-*.pkg.tar.zst
       - uses: actions/upload-artifact@v5
         with:
           name: deb_build

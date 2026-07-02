@@ -250,6 +250,7 @@ class LocalFavoritesManager with ChangeNotifier {
       );
     """);
     var folderNames = _getFolderNamesWithDB();
+    _ensureTrackingFolder(folderNames);
     for (var folder in folderNames) {
       var columns = _db.select("""
         pragma table_info("$folder");
@@ -279,10 +280,15 @@ class LocalFavoritesManager with ChangeNotifier {
       await appdata.ensureInit();
     }
     // Make sure the follow updates folder is ready
+    // If not set, default to "追更" folder
     var followUpdateFolder = appdata.settings['followUpdatesFolder'];
     if (followUpdateFolder is String &&
         folderNames.contains(followUpdateFolder)) {
       prepareTableForFollowUpdates(followUpdateFolder, false);
+    } else if (folderNames.contains(trackingFolderName)) {
+      // Default to tracking folder if user hasn't configured one
+      appdata.settings['followUpdatesFolder'] = trackingFolderName;
+      prepareTableForFollowUpdates(trackingFolderName, false);
     } else {
       appdata.settings['followUpdatesFolder'] = null;
     }
@@ -298,6 +304,14 @@ class LocalFavoritesManager with ChangeNotifier {
 
   void refreshHashedIds() {
     _refreshHashedIds(folderNames);
+  }
+
+  static const String trackingFolderName = "追更";
+
+  void _ensureTrackingFolder(List<String> folderNames) {
+    if (!folderNames.contains(trackingFolderName)) {
+      createFolder(trackingFolderName);
+    }
   }
 
   void _refreshHashedIds(List<String> folders) {
