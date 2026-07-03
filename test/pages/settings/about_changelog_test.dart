@@ -4,6 +4,27 @@ import 'package:venera/pages/settings/settings_page.dart';
 import 'package:venera/utils/translations.dart';
 
 void main() {
+  test('stable users are not notified about prerelease versions', () {
+    expect(shouldNotifyUpdateForTesting('1.10.0-rc.2', '1.9.3'), isFalse);
+    expect(selectUpdateVersionForTesting(['1.10.0-rc.2'], '1.9.3'), isNull);
+  });
+
+  test('prerelease users are notified about newer prereleases', () {
+    expect(shouldNotifyUpdateForTesting('1.10.0-rc.2', '1.10.0-rc.1'), isTrue);
+    expect(
+      selectUpdateVersionForTesting(['1.10.0-rc.2'], '1.10.0-rc.1'),
+      '1.10.0-rc.2',
+    );
+  });
+
+  test('stable releases still notify stable users', () {
+    expect(shouldNotifyUpdateForTesting('1.10.0', '1.9.3'), isTrue);
+    expect(
+      selectUpdateVersionForTesting(['1.10.0-rc.2', '1.9.4'], '1.9.3'),
+      '1.9.4',
+    );
+  });
+
   testWidgets('changelog page renders markdown content', (tester) async {
     await AppTranslation.init();
 

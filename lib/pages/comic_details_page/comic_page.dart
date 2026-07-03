@@ -42,6 +42,34 @@ part 'actions.dart';
 
 part 'cover_viewer.dart';
 
+bool _isReadOnlyComicInfoNamespace(String namespace) {
+  final key = namespace.trim().toLowerCase();
+  const readOnlyNamespaces = {
+    'views',
+    'view',
+    'view count',
+    'view_count',
+    'viewcount',
+    '浏览量',
+    '浏览次数',
+    '观看数',
+    '觀看數',
+    '阅读量',
+    '閱讀量',
+    '更新',
+    '最後更新',
+    '最后更新',
+    'update',
+    'last update',
+  };
+  return readOnlyNamespaces.contains(key);
+}
+
+@visibleForTesting
+bool isReadOnlyComicInfoNamespaceForTesting(String namespace) {
+  return _isReadOnlyComicInfoNamespace(namespace);
+}
+
 class ComicPage extends StatefulWidget {
   const ComicPage({
     super.key,
@@ -671,7 +699,9 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                             e.key.toLowerCase(),
                           )
                         : tag,
-                    onTap: () => onTapTag(tag, e.key),
+                    onTap: _isReadOnlyComicInfoNamespace(e.key)
+                        ? null
+                        : () => onTapTag(tag, e.key),
                   ),
               ],
             ),
