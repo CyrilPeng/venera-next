@@ -8,14 +8,14 @@ file = open('pubspec.yaml', 'r')
 content = file.read()
 file.close()
 
-subprocess.run(["flutter", "build", "windows"], shell=True)
+subprocess.run(["flutter", "build", "windows", "--target-platform", "windows-arm64"], shell=True)
 
 if os.path.exists("build/app-windows.zip"):
     os.remove("build/app-windows.zip")
 
 version = str.split(str.split(content, 'version: ')[1], '+')[0]
 
-release_dir = "build/windows/x64/runner/Release"
+release_dir = "build/windows/arm64/runner/Release"
 package_name = f"VeneraNext-{version}-windows-arm64"
 package_dir = f"build/windows/{package_name}"
 zip_path = f"build/windows/{package_name}.zip"
