@@ -129,7 +129,7 @@ class _WindowFrameState extends State<WindowFrame> {
                         Expanded(
                           child: DragToMoveArea(
                             child: Text(
-                              'Venera',
+                              'VeneraNext',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: (useDarkTheme ||

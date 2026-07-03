@@ -91,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: apk-universal
-          path: build/app/outputs/apk/release/*universal*.apk
+          path: build/app/outputs/apk/release/*-android.apk
 
   Build_Windows:
     if: ${{ inputs.build_windows }}
@@ -116,8 +116,8 @@ jobs:
       - name: Validate Windows artifacts
         shell: pwsh
         run: |
-          $zip = @(Get-ChildItem -Path build/windows -File -Filter 'Venera-*-windows.zip')
-          $installer = @(Get-ChildItem -Path build/windows -File -Filter 'Venera-*-windows-installer.exe')
+          $zip = @(Get-ChildItem -Path build/windows -File -Filter 'VeneraNext-*-windows.zip')
+          $installer = @(Get-ChildItem -Path build/windows -File -Filter 'VeneraNext-*-windows-installer.exe')
           if ($zip.Count -ne 1) { throw "Expected one Windows zip, found $($zip.Count)." }
           if ($installer.Count -ne 1) { throw "Expected one Windows installer, found $($installer.Count)." }
           $artifacts = @($zip + $installer)
@@ -125,13 +125,30 @@ jobs:
           if ($empty.Count -gt 0) {
             throw "Windows artifacts contain empty files: $($empty.Name -join ', ')"
           }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $expectedRoot = [System.IO.Path]::GetFileNameWithoutExtension($zip[0].Name)
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip[0].FullName)
+          try {
+            $badEntries = @($archive.Entries | Where-Object {
+              -not $_.FullName.StartsWith("$expectedRoot/") -and $_.FullName -ne "$expectedRoot/"
+            })
+            if ($badEntries.Count -gt 0) {
+              throw "Windows zip contains files outside $expectedRoot/: $($badEntries.FullName -join ', ')"
+            }
+            $exeEntry = @($archive.Entries | Where-Object { $_.FullName -eq "$expectedRoot/VeneraNext.exe" })
+            if ($exeEntry.Count -ne 1) {
+              throw "Windows zip does not contain $expectedRoot/VeneraNext.exe"
+            }
+          } finally {
+            $archive.Dispose()
+          }
           $artifacts | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Length) bytes" }
       - uses: actions/upload-artifact@v5
         with:
           name: windows_build
           path: |
-            build/windows/Venera-*-windows.zip
-            build/windows/Venera-*-windows-installer.exe
+            build/windows/VeneraNext-*-windows.zip
+            build/windows/VeneraNext-*-windows-installer.exe
           if-no-files-found: error
 
   Build_MacOS:
@@ -154,14 +171,14 @@ jobs:
         run: |
           mkdir -p dist
           mkdir -p dist/dmg_contents
-          cp -R build/macos/Build/Products/Release/venera.app dist/dmg_contents/
+          cp -R build/macos/Build/Products/Release/VeneraNext.app dist/dmg_contents/
           ln -s /Applications dist/dmg_contents/Applications
-          hdiutil create -volname "venera" -srcfolder dist/dmg_contents -ov -format UDZO "dist/venera.dmg"
+          hdiutil create -volname "VeneraNext" -srcfolder dist/dmg_contents -ov -format UDZO "dist/VeneraNext.dmg"
       - name: Add version to filename
         run: |
           APP_VERSION=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | tr -d '\r\n')
           mkdir -p result
-          mv dist/venera.dmg "result/venera-$APP_VERSION.dmg"
+          mv dist/VeneraNext.dmg "result/VeneraNext-$APP_VERSION.dmg"
       - name: Upload DMG
         uses: actions/upload-artifact@v5
         with:

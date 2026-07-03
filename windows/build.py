@@ -9,7 +9,9 @@ import httpx
 
 ROOT = Path.cwd()
 WINDOWS_BUILD_DIR = ROOT / "build" / "windows"
+WINDOWS_RUNNER_BUILD_DIR = WINDOWS_BUILD_DIR / "x64" / "runner"
 WINDOWS_RELEASE_DIR = WINDOWS_BUILD_DIR / "x64" / "runner" / "Release"
+WINDOWS_ICON_PATH = ROOT / "windows" / "runner" / "resources" / "app_icon.ico"
 ISS_PATH = ROOT / "windows" / "build.iss"
 CHINESE_TRANSLATION_PATH = ROOT / "windows" / "ChineseSimplified.isl"
 CHINESE_TRANSLATION_URL = (
@@ -40,17 +42,39 @@ def require_non_empty_file(path):
         raise RuntimeError(f"{path} is empty")
 
 
+def clean_windows_runner_build():
+    if WINDOWS_RUNNER_BUILD_DIR.exists():
+        shutil.rmtree(WINDOWS_RUNNER_BUILD_DIR)
+
+
 def create_portable_zip(version):
     if not WINDOWS_RELEASE_DIR.is_dir():
         raise FileNotFoundError(WINDOWS_RELEASE_DIR)
 
-    zip_path = WINDOWS_BUILD_DIR / f"Venera-{version}-windows.zip"
+    zip_path = WINDOWS_BUILD_DIR / f"VeneraNext-{version}-windows.zip"
+    package_dir = WINDOWS_BUILD_DIR / f"VeneraNext-{version}-windows"
     if zip_path.exists():
         zip_path.unlink()
+    if package_dir.exists():
+        shutil.rmtree(package_dir)
 
-    shutil.make_archive(str(zip_path.with_suffix("")), "zip", WINDOWS_RELEASE_DIR)
-    require_non_empty_file(zip_path)
-    return zip_path
+    try:
+        shutil.copytree(WINDOWS_RELEASE_DIR, package_dir)
+        shutil.make_archive(
+            str(zip_path.with_suffix("")),
+            "zip",
+            WINDOWS_BUILD_DIR,
+            package_dir.name,
+        )
+        require_non_empty_file(zip_path)
+        return zip_path
+    finally:
+        if package_dir.exists():
+            shutil.rmtree(package_dir)
+
+
+def validate_icon_resources():
+    require_non_empty_file(WINDOWS_ICON_PATH)
 
 
 def ensure_chinese_translation():
@@ -66,7 +90,7 @@ def build_installer(version):
     iss_content = ISS_PATH.read_text(encoding="utf-8")
     rendered = iss_content.replace("{{version}}", version)
     rendered = rendered.replace("{{root_path}}", os.getcwd())
-    installer_path = WINDOWS_BUILD_DIR / f"Venera-{version}-windows-installer.exe"
+    installer_path = WINDOWS_BUILD_DIR / f"VeneraNext-{version}-windows-installer.exe"
 
     try:
         ISS_PATH.write_text(rendered, encoding="utf-8")
@@ -79,7 +103,14 @@ def build_installer(version):
     return installer_path
 
 
-version = read_version()
-run(["flutter", "build", "windows"])
-create_portable_zip(version)
-build_installer(version)
+def main():
+    version = read_version()
+    validate_icon_resources()
+    clean_windows_runner_build()
+    run(["flutter", "build", "windows"])
+    create_portable_zip(version)
+    build_installer(version)
+
+
+if __name__ == "__main__":
+    main()

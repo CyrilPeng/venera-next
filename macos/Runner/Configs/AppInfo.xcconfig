@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = venera
+PRODUCT_NAME = VeneraNext
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.github.wgh136.venera
+PRODUCT_BUNDLE_IDENTIFIER = com.github.cyrilpeng.veneranext
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2024 com.github.wgh136. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 https://github.com/CyrilPeng/venera-next

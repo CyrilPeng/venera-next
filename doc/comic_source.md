@@ -2,22 +2,22 @@
 
 ## Introduction
 
-Venera is a comic reader that can read comics from various sources. 
+VeneraNext is a comic reader that can read comics from various sources.
 
 All comic sources are written in javascript. 
-Venera uses [flutter_qjs](https://github.com/wgh136/flutter_qjs) as js engine which is forked from [ekibun](https://github.com/ekibun/flutter_qjs).
+VeneraNext uses [flutter_qjs](https://github.com/wgh136/flutter_qjs) as js engine which is forked from [ekibun](https://github.com/ekibun/flutter_qjs).
 
-This document will describe how to write a comic source for Venera.
+This document will describe how to write a comic source for VeneraNext.
 
 ## Comic Source List
 
-Venera can display a list of comic sources in the app.
+VeneraNext can display a list of comic sources in the app.
 
 You can use the following repo url:
 ```
 https://cdn.jsdelivr.net/gh/venera-app/venera-configs@main/index.json
 ```
-The repo is maintained by the Venera team.
+The repo is maintained by the upstream Venera project.
 
 > The link is a mirror of the original repo. To contribute your comic source, please visit the [original repo](https://github.com/venera-app/venera-configs)
 
@@ -45,9 +45,9 @@ The description field is optional.
 
 ### Preparation
 
-- Install Venera. Using flutter to run the project is recommended since it's easier to debug.
+- Install VeneraNext. Using flutter to run the project is recommended since it's easier to debug.
 - An editor that supports javascript.
-- Download template and venera javascript api from [here](https://github.com/venera-app/venera-configs).
+- Download template and VeneraNext JavaScript API from [here](https://github.com/venera-app/venera-configs).
 
 ### Start Writing
 

@@ -1,17 +1,17 @@
 {
-  "name": "Venera",
-  "identifier": "com.github.wgh136.venera.source",
+  "name": "VeneraNext",
+  "identifier": "com.github.cyrilpeng.veneranext.source",
   "website": "https://github.com/CyrilPeng/venera-next",
-  "subtitle": "Venera official AltStore Source.",
-  "description": "This is the official AltStore Source for Venera.\n\n A comic reader that supports reading local and network comics",
+  "subtitle": "VeneraNext official AltStore Source.",
+  "description": "This is the official AltStore Source for VeneraNext.\n\n A comic reader that supports reading local and network comics",
   "tintColor": "#0784FC",
   "iconURL": "https://raw.githubusercontent.com/CyrilPeng/venera-next/main/assets/app_icon.png",
   "apps": [
     {
       "beta": false,
-      "name": "Venera",
-      "bundleIdentifier": "com.github.wgh136.venera",
-      "developerName": "wgh136",
+      "name": "VeneraNext",
+      "bundleIdentifier": "com.github.cyrilpeng.veneranext",
+      "developerName": "CyrilPeng/venera-next",
       "subtitle": "A comic reader that supports reading local and network comics",
       "version": "1.9.1",
       "versionDate": "2026-06-18",
@@ -100,7 +100,7 @@
   ],
   "news": [
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2025-06-18T09:02:01Z",
       "identifier": "release-v1.4.5",
@@ -110,7 +110,7 @@
       "url": "https://github.com/venera-app/venera/releases/tag/v1.4.5"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2025-10-13T12:47:27Z",
       "identifier": "release-v1.5.3",
@@ -120,7 +120,7 @@
       "url": "https://github.com/venera-app/venera/releases/tag/v1.5.3"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2025-11-01T07:31:38Z",
       "identifier": "release-v1.6.0",
@@ -130,7 +130,7 @@
       "url": "https://github.com/venera-app/venera/releases/tag/v1.6.0"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2025-11-29T08:51:14Z",
       "identifier": "release-v1.6.1",
@@ -140,7 +140,7 @@
       "url": "https://github.com/venera-app/venera/releases/tag/v1.6.1"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2026-01-01T08:31:16Z",
       "identifier": "release-v1.6.2",
@@ -150,7 +150,7 @@
       "url": "https://github.com/venera-app/venera/releases/tag/v1.6.2"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2026-03-08T09:49:52Z",
       "identifier": "release-v1.6.3",
@@ -160,7 +160,7 @@
       "url": "https://github.com/venera-app/venera/releases/tag/v1.6.3"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2026-06-02T09:37:46Z",
       "identifier": "release-v1.8.0",
@@ -170,7 +170,7 @@
       "url": "https://github.com/CyrilPeng/venera-next/releases/tag/v1.8.0"
     },
     {
-      "appID": "com.github.wgh136.venera",
+      "appID": "com.github.cyrilpeng.veneranext",
       "caption": "Update of Venera just got released!",
       "date": "2026-06-18T07:46:26Z",
       "identifier": "release-v1.9.1",

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-/// Runs [tasks] with a fixed concurrency limit and the existing Venera batch
+/// Runs [tasks] with a fixed concurrency limit and the existing batch
 /// throttle formula: after every [throttleEvery] scheduled tasks, wait
 /// `min(scheduledCount % 100 + 1, 10)` seconds before scheduling more.
 Future<void> runThrottledTasks<T>(

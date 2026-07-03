@@ -1,17 +1,17 @@
 flutter_app: 
-  command: venera
+  command: venera-next
   arch: {{Arch}}
   parent: /usr/local/lib
   nonInteractive: true
 
 control:
-  Package: venera
+  Package: venera-next
   Version: {{Version}}
   Architecture: {{Architecture}}
   Priority: optional
   Depends: libwebkit2gtk-4.1-0, libgtk-3-0
-  Maintainer: nyne
-  Description: venera
+  Maintainer: CyrilPeng/venera-next <https://github.com/CyrilPeng/venera-next>
+  Description: VeneraNext
   
 #options:
 #  exec_out_dir: debian/packages

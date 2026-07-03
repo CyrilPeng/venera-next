@@ -37,7 +37,9 @@ class _AboutSettingsState extends State<AboutSettings> {
           children: [
             const SizedBox(height: 8),
             Text("V${App.version}", style: const TextStyle(fontSize: 16)),
-            Text("Venera is a free and open-source app for comic reading.".tl),
+            Text(
+              "VeneraNext is a free and open-source app for comic reading.".tl,
+            ),
             const SizedBox(height: 8),
           ],
         ).toSliver(),

@@ -112,8 +112,8 @@ flutter:
 # fonts:
 
 flutter_to_arch:
-  name: Venera
-  icon: debian/gui/venera.png
+  name: venera-next
+  icon: debian/gui/venera-next.png
   categories: Utility
   keywords: Flutter;comic;images;
   url: https://github.com/CyrilPeng/venera-next

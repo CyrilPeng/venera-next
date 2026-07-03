@@ -1,13 +1,13 @@
-# Venera Headless Mode
+# VeneraNext Headless Mode
 
-Venera's headless mode allows you to run key features from the command line, making it easy to automate tasks and integrate with other tools. This document outlines the available commands and their usage.
+VeneraNext's headless mode allows you to run key features from the command line, making it easy to automate tasks and integrate with other tools. This document outlines the available commands and their usage.
 
 ## How to Use
 
-To activate headless mode, use the `--headless` flag when running the Venera executable, followed by the desired command.
+To activate headless mode, use the `--headless` flag when running the VeneraNext executable, followed by the desired command.
 
 ```bash
-venera --headless <command> [subcommand] [options]
+venera-next --headless <command> [subcommand] [options]
 ```
 
 ## Global Options
@@ -26,7 +26,7 @@ Manage WebDAV data synchronization.
 **Example:**
 
 ```bash
-venera --headless webdav up
+venera-next --headless webdav up
 ```
 
 ### `updatescript`
@@ -38,7 +38,7 @@ Update comic source scripts.
 **Example:**
 
 ```bash
-venera --headless updatescript all
+venera-next --headless updatescript all
 ```
 
 **Output Format:**
@@ -96,10 +96,10 @@ Update your subscribed comics and retrieve a list of updated comics.
 
 ```bash
 # Update all subscriptions
-venera --headless updatesubscribe
+venera-next --headless updatesubscribe
 
 # Update a single comic
-venera --headless updatesubscribe --update-comic-by-id-type "comic-id" "source-key"
+venera-next --headless updatesubscribe --update-comic-by-id-type "comic-id" "source-key"
 ```
 
 ## Output Format

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.github.wgh136" "\0"
-            VALUE "FileDescription", "venera" "\0"
+            VALUE "CompanyName", "CyrilPeng/venera-next" "\0"
+            VALUE "FileDescription", "VeneraNext" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "venera" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 com.github.wgh136. All rights reserved." "\0"
-            VALUE "OriginalFilename", "venera.exe" "\0"
-            VALUE "ProductName", "venera" "\0"
+            VALUE "InternalName", "VeneraNext" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 https://github.com/CyrilPeng/venera-next" "\0"
+            VALUE "OriginalFilename", "VeneraNext.exe" "\0"
+            VALUE "ProductName", "VeneraNext" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
