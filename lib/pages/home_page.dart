@@ -329,6 +329,7 @@ class _HistoryState extends State<_History> {
                       return SimpleComicTile(
                         comic: history[index],
                         heroID: heroID,
+                        gaplessPlayback: true,
                         onTap: () {
                           context.to(
                             () => ComicPage(
@@ -437,6 +438,7 @@ class _LocalState extends State<_Local> {
                       return SimpleComicTile(
                         comic: local[index],
                         heroID: heroID,
+                        gaplessPlayback: true,
                         onTap: () {
                           context.to(
                             () => ComicPage(

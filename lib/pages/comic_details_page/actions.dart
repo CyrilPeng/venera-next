@@ -83,7 +83,9 @@ abstract mixin class _ComicPageActions {
     );
     isAddToLocalFav = true;
     update();
-    App.rootContext.showMessage(message: "Added".tl);
+    App.rootContext.showMessage(
+      message: "Added to @folder".tlParams({"folder": folder}),
+    );
   }
 
   void share() {

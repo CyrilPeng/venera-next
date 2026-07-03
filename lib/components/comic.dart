@@ -1645,6 +1645,7 @@ class SimpleComicTile extends StatelessWidget {
     this.onTap,
     this.withTitle = false,
     this.heroID,
+    this.gaplessPlayback = false,
   });
 
   final Comic comic;
@@ -1654,6 +1655,8 @@ class SimpleComicTile extends StatelessWidget {
   final bool withTitle;
 
   final int? heroID;
+
+  final bool gaplessPlayback;
 
   @override
   Widget build(BuildContext context) {
@@ -1667,6 +1670,7 @@ class SimpleComicTile extends StatelessWidget {
             height: double.infinity,
             fit: BoxFit.cover,
             filterQuality: FilterQuality.medium,
+            gaplessPlayback: gaplessPlayback,
           );
 
     child = Container(
