@@ -18,6 +18,13 @@ winget upgrade CyrilPeng.VeneraNext
 
 正式版 tag 发布时，主发布 workflow 会生成 `winget_manifest` 工件。也可以手动运行 `Prepare Winget Manifest` workflow，输入已存在的稳定版 tag，例如 `v1.10.2`。
 
+手动 workflow 默认只生成 manifest 工件。如果需要同时向 `microsoft/winget-pkgs` 创建 PR：
+
+1. 在仓库 secrets 中配置 `WINGET_PKGS_TOKEN`，令牌需要能够 fork 仓库并向 `microsoft/winget-pkgs` 创建 PR。
+2. 运行 `Prepare Winget Manifest` workflow 时启用 `submit_pr`。
+
+该 workflow 会使用 `.github/scripts/submit_winget_manifest_pr.py` 直接通过 GitHub API 更新 `CyrilPeng/winget-pkgs` fork 中的 manifest 分支并创建 PR，避免 clone 完整的 `winget-pkgs` 大仓库。
+
 本地生成命令：
 
 ```powershell
@@ -36,7 +43,7 @@ build/winget/manifests/c/CyrilPeng/VeneraNext/<version>/
 
 ## 提交到 winget-pkgs
 
-首次接入时，将生成目录提交到 `microsoft/winget-pkgs` 的对应路径并创建 PR。
+首次接入时，将生成目录提交到 `microsoft/winget-pkgs` 的对应路径并创建 PR。已配置 `WINGET_PKGS_TOKEN` 时，可以直接用 `Prepare Winget Manifest` workflow 的 `submit_pr` 选项完成。
 
 后续已有包条目后，可以使用 WingetCreate 更新：
 

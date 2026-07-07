@@ -2,6 +2,12 @@
 
 本项目遵循语义化版本，记录 fork 后的主要变更。
 
+## 未发布
+
+### 新增
+
+- 为 Winget manifest 手动 workflow 增加可选 PR 提交能力，可通过 `WINGET_PKGS_TOKEN` 自动向 `microsoft/winget-pkgs` 创建更新 PR。
+
 ## v1.10.2
 
 ### 新增

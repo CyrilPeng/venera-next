@@ -7,6 +7,11 @@ on:
         description: "Stable release tag, for example v1.10.2"
         required: true
         type: string
+      submit_pr:
+        description: "Submit the generated manifest to microsoft/winget-pkgs"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -53,6 +58,19 @@ jobs:
           name: winget_manifest
           path: build/winget/manifests
           if-no-files-found: error
+      - name: Submit Winget PR
+        if: ${{ inputs.submit_pr }}
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_PKGS_TOKEN }}
+        run: |
+          if [[ -z "${GH_TOKEN}" ]]; then
+            echo "::error::WINGET_PKGS_TOKEN secret is required when submit_pr is enabled"
+            exit 1
+          fi
+          gh repo fork microsoft/winget-pkgs --clone=false || true
+          python3 .github/scripts/submit_winget_manifest_pr.py \
+            --version "${{ steps.release.outputs.version }}" \
+            --manifest-root build/winget/manifests
       - name: Summary
         run: |
           {
@@ -66,4 +84,7 @@ jobs:
             printf '```powershell\n'
             printf 'wingetcreate update CyrilPeng.VeneraNext -u "${{ steps.release.outputs.url }}" -v "${{ steps.release.outputs.version }}" -t <GitHub PAT> --submit\n'
             printf '```\n'
+            if [[ "${{ inputs.submit_pr }}" == "true" ]]; then
+              printf '\n`submit_pr` was enabled; check the workflow log for the created PR URL.\n'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
