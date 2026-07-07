@@ -8,6 +8,10 @@
 
 - 为 Winget manifest 手动 workflow 增加可选 PR 提交能力，可通过 `WINGET_PKGS_TOKEN` 自动向 `microsoft/winget-pkgs` 创建更新 PR。
 
+### 变更
+
+- 漫画详情页章节排序从易误解的图标按钮改为正序/倒序分段切换，并将选择作为全局偏好持久化。
+
 ### 修复
 
 - 修复生成的 Winget manifest 缺少 schema header，导致 `winget-pkgs` 服务端校验失败的问题。

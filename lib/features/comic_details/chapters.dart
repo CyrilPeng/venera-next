@@ -80,6 +80,15 @@ class _NormalComicChaptersState extends State<_NormalComicChapters> {
     });
   }
 
+  void setReverse(bool value) {
+    if (reverse == value) return;
+    setState(() {
+      reverse = value;
+    });
+    appdata.settings["reverseChapterOrder"] = value;
+    appdata.saveData();
+  }
+
   @override
   Widget build(BuildContext context) {
     final chapters = widget.chapters;
@@ -104,20 +113,9 @@ class _NormalComicChaptersState extends State<_NormalComicChapters> {
             SliverToBoxAdapter(
               child: ListTile(
                 title: Text("Chapters".tl),
-                trailing: Tooltip(
-                  message: "Order".tl,
-                  child: IconButton(
-                    icon: Icon(
-                      reverse
-                          ? Icons.vertical_align_top
-                          : Icons.vertical_align_bottom_outlined,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        reverse = !reverse;
-                      });
-                    },
-                  ),
+                trailing: _ChapterOrderSegment(
+                  reverse: reverse,
+                  onChanged: setReverse,
                 ),
               ),
             ),
@@ -248,6 +246,15 @@ class _GroupedComicChaptersState extends State<_GroupedComicChapters>
     });
   }
 
+  void setReverse(bool value) {
+    if (reverse == value) return;
+    setState(() {
+      reverse = value;
+    });
+    appdata.settings["reverseChapterOrder"] = value;
+    appdata.saveData();
+  }
+
   @override
   void dispose() {
     tabController.removeListener(onTabChange);
@@ -280,20 +287,9 @@ class _GroupedComicChaptersState extends State<_GroupedComicChapters>
             SliverToBoxAdapter(
               child: ListTile(
                 title: Text("Chapters".tl),
-                trailing: Tooltip(
-                  message: "Order".tl,
-                  child: IconButton(
-                    icon: Icon(
-                      reverse
-                          ? Icons.vertical_align_top
-                          : Icons.vertical_align_bottom_outlined,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        reverse = !reverse;
-                      });
-                    },
-                  ),
+                trailing: _ChapterOrderSegment(
+                  reverse: reverse,
+                  onChanged: setReverse,
                 ),
               ),
             ),
@@ -380,6 +376,37 @@ class _GroupedComicChaptersState extends State<_GroupedComicChapters>
           ],
         );
       },
+    );
+  }
+}
+
+class _ChapterOrderSegment extends StatelessWidget {
+  const _ChapterOrderSegment({required this.reverse, required this.onChanged});
+
+  final bool reverse;
+
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: "Order".tl,
+      child: SegmentedButton<bool>(
+        selected: {reverse},
+        showSelectedIcon: false,
+        style: const ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 10)),
+        ),
+        segments: [
+          ButtonSegment<bool>(value: false, label: Text("Ascending".tl)),
+          ButtonSegment<bool>(value: true, label: Text("Descending".tl)),
+        ],
+        onSelectionChanged: (selected) {
+          onChanged(selected.first);
+        },
+      ),
     );
   }
 }
