@@ -1,8 +1,8 @@
-name: Update AltStore Source
+name: 更新 AltStore 源
 
 on:
   workflow_run:
-    workflows: ["Build ALL"]
+    workflows: ["完整构建"]
     types: [completed]
   workflow_dispatch:
 
@@ -15,24 +15,24 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     steps:
-    - name: Checkout repository
+    - name: 检出仓库
       uses: actions/checkout@v5
 
-    - name: Set up Python
+    - name: 设置 Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: 安装依赖
       run: |
         python -m pip install --upgrade pip
         pip install requests
 
-    - name: Record job start time
+    - name: 记录任务开始时间
       id: job_start_time
       run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-    - name: Update AltStore source
+    - name: 更新 AltStore 源
       id: update_source
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -45,19 +45,19 @@ jobs:
         if git diff --staged --quiet; then
           echo "changes=false" >> $GITHUB_OUTPUT
         else
-          # Create a new branch for the PR
+          # 为 PR 创建新分支
           branch_name="update-altstore-$(date +%Y%m%d-%H%M%S)"
           git checkout -b "$branch_name"
-          git commit -m "Updated source with latest release"
+          git commit -m "更新 AltStore 源到最新发布"
           git push -u origin "$branch_name"
           echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
           
           pr_output=$(gh pr create \
-            --title "Update AltStore source with latest release" \
-            --body "This PR updates the alt_store.json file with the latest release information." \
+            --title "更新 AltStore 源到最新发布" \
+            --body "此 PR 会把 alt_store.json 更新到最新发布信息。" \
             --head "$branch_name" \
             --base main 2>&1) || {
-            echo "::warning::Unable to create pull request automatically: $pr_output"
+            echo "::warning::无法自动创建拉取请求：$pr_output"
             echo "pr_created=false" >> $GITHUB_OUTPUT
             echo "changes=true" >> $GITHUB_OUTPUT
             exit 0
@@ -67,7 +67,7 @@ jobs:
           echo "changes=true" >> $GITHUB_OUTPUT
         fi
 
-    - name: Calculate job duration
+    - name: 计算任务耗时
       id: duration
       if: always()
       run: |
@@ -75,32 +75,32 @@ jobs:
         duration=$((end_time - ${{ steps.job_start_time.outputs.start_time }}))
         echo "duration=$duration seconds" >> $GITHUB_OUTPUT
 
-    - name: Create job summary
+    - name: 生成任务摘要
       run: |
         if [[ "${{ steps.update_source.outputs.changes }}" == "true" ]]; then
-          echo "## Update Altstore Source Summary 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Changes Detected and Applied" >> $GITHUB_STEP_SUMMARY
+          echo "## AltStore 源更新摘要 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "✅ 已检测并应用变更" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The alt_store.json file has been updated with the latest release information." >> $GITHUB_STEP_SUMMARY
+          echo "alt_store.json 已更新到最新发布信息。" >> $GITHUB_STEP_SUMMARY
           if [[ -n "${{ steps.update_source.outputs.branch_name }}" ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Update branch: \`${{ steps.update_source.outputs.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "更新分支：\`${{ steps.update_source.outputs.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
           fi
           if [[ "${{ steps.update_source.outputs.pr_created }}" == "false" ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Automatic PR creation was skipped because the workflow token is not permitted to create pull requests." >> $GITHUB_STEP_SUMMARY
+            echo "由于工作流令牌没有创建拉取请求的权限，已跳过自动创建 PR。" >> $GITHUB_STEP_SUMMARY
           fi
         else
-          echo "## Update Altstore Source Summary 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "🔍 No Changes Detected" >> $GITHUB_STEP_SUMMARY
+          echo "## AltStore 源更新摘要 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "🔍 未检测到变更" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The alt_store.json file is up to date. No changes were necessary." >> $GITHUB_STEP_SUMMARY
+          echo "alt_store.json 已是最新，无需更新。" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "🕐 Execution Time" >> $GITHUB_STEP_SUMMARY
+        echo "🕐 执行耗时" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "This job took ${{ steps.duration.outputs.duration }} to complete." >> $GITHUB_STEP_SUMMARY
+        echo "本任务耗时 ${{ steps.duration.outputs.duration }}。" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "📆 Next Scheduled Run" >> $GITHUB_STEP_SUMMARY
+        echo "📆 下次运行" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "The next scheduled run will be tomorrow at midnight UTC." >> $GITHUB_STEP_SUMMARY
+        echo "本工作流会在完整构建成功后运行，也可以手动触发。" >> $GITHUB_STEP_SUMMARY

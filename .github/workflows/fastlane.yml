@@ -1,4 +1,4 @@
-name: Validate Fastlane metadata
+name: 校验 Fastlane 元数据
 
 on:
   workflow_dispatch:
@@ -16,5 +16,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Validate Fastlane Supply Metadata
+      - name: 校验 Fastlane Supply 元数据
         uses: ashutoshgngwr/validate-fastlane-supply-metadata@v2.1.0

@@ -1,4 +1,4 @@
-name: "analyze"
+name: "代码分析"
 on:
   pull_request:
   push:

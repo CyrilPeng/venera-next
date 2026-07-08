@@ -1,14 +1,14 @@
-name: Prepare Winget Manifest
+name: 准备 Winget Manifest
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Stable release tag, for example v1.10.2"
+        description: "稳定版发布标签，例如 v1.10.2"
         required: true
         type: string
       submit_pr:
-        description: "Submit the generated manifest to microsoft/winget-pkgs"
+        description: "提交生成的 manifest 到 microsoft/winget-pkgs"
         required: false
         default: false
         type: boolean
@@ -21,23 +21,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Resolve release metadata
+      - name: 解析发布元数据
         id: release
         run: |
           tag="${{ inputs.tag }}"
           version="${tag#v}"
           if [[ "$tag" != v* ]]; then
-            echo "::error::tag must start with v, got $tag"
+            echo "::error::tag 必须以 v 开头，当前为 $tag"
             exit 1
           fi
           if [[ "$version" == *-* ]]; then
-            echo "::error::winget manifests should only be prepared for stable releases"
+            echo "::error::Winget manifest 只应为稳定版发布准备"
             exit 1
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "url=https://github.com/CyrilPeng/venera-next/releases/download/$tag/VeneraNext-$version-windows-installer.exe" >> "$GITHUB_OUTPUT"
-      - name: Download Windows installer
+      - name: 下载 Windows 安装包
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -45,7 +45,7 @@ jobs:
           gh release download "${{ steps.release.outputs.tag }}" \
             --pattern "VeneraNext-${{ steps.release.outputs.version }}-windows-installer.exe" \
             --dir dist
-      - name: Generate Winget manifest
+      - name: 生成 Winget Manifest
         run: |
           python3 .github/scripts/generate_winget_manifest.py \
             --version "${{ steps.release.outputs.version }}" \
@@ -58,33 +58,33 @@ jobs:
           name: winget_manifest
           path: build/winget/manifests
           if-no-files-found: error
-      - name: Submit Winget PR
+      - name: 提交 Winget PR
         if: ${{ inputs.submit_pr }}
         env:
           GH_TOKEN: ${{ secrets.WINGET_PKGS_TOKEN }}
         run: |
           if [[ -z "${GH_TOKEN}" ]]; then
-            echo "::error::WINGET_PKGS_TOKEN secret is required when submit_pr is enabled"
+            echo "::error::启用 submit_pr 时必须配置 WINGET_PKGS_TOKEN secret"
             exit 1
           fi
           gh repo fork microsoft/winget-pkgs --clone=false || true
           python3 .github/scripts/submit_winget_manifest_pr.py \
             --version "${{ steps.release.outputs.version }}" \
             --manifest-root build/winget/manifests
-      - name: Summary
+      - name: 生成摘要
         run: |
           {
             printf '## Winget Manifest\n\n'
-            printf 'The `winget_manifest` artifact contains the manifest files for:\n\n'
+            printf '`winget_manifest` 构建产物包含以下命令需要的 manifest 文件：\n\n'
             printf '```powershell\n'
             printf 'winget install CyrilPeng.VeneraNext\n'
             printf 'winget upgrade CyrilPeng.VeneraNext\n'
             printf '```\n\n'
-            printf 'Submit the generated manifest folder to `microsoft/winget-pkgs`, or use WingetCreate after the package has an existing winget entry:\n\n'
+            printf '可以把生成的 manifest 目录提交到 `microsoft/winget-pkgs`；已有 winget 条目后，也可以使用 WingetCreate 更新：\n\n'
             printf '```powershell\n'
             printf 'wingetcreate update CyrilPeng.VeneraNext -u "${{ steps.release.outputs.url }}" -v "${{ steps.release.outputs.version }}" -t <GitHub PAT> --submit\n'
             printf '```\n'
             if [[ "${{ inputs.submit_pr }}" == "true" ]]; then
-              printf '\n`submit_pr` was enabled; check the workflow log for the created PR URL.\n'
+              printf '\n已启用 `submit_pr`；请在工作流日志中查看创建的 PR 链接。\n'
             fi
           } >> "$GITHUB_STEP_SUMMARY"

@@ -1,31 +1,31 @@
-﻿name: Build
-run-name: Build ${{ github.ref_name }}
+﻿name: 构建
+run-name: 构建 ${{ github.ref_name }}
 
 on:
   workflow_dispatch:
     inputs:
       build_android:
-        description: 'Build Android'
+        description: '构建 Android'
         required: true
         type: boolean
         default: true
       build_windows:
-        description: 'Build Windows'
+        description: '构建 Windows'
         required: true
         type: boolean
         default: true
       build_macos:
-        description: 'Build macOS'
+        description: '构建 macOS'
         required: true
         type: boolean
         default: true
       build_linux_x64:
-        description: 'Build Linux x64'
+        description: '构建 Linux x64'
         required: true
         type: boolean
         default: true
       build_linux_arm64:
-        description: 'Build Linux ARM64'
+        description: '构建 Linux ARM64'
         required: true
         type: boolean
         default: true
@@ -45,7 +45,7 @@ jobs:
           channel: "stable"
           flutter-version-file: pubspec.yaml
           architecture: x64
-      - name: Decode and install certificate
+      - name: 解码并安装 Android 证书
         env:
           STORE_FILE: ${{ secrets.ANDROID_KEYSTORE }}
           PROPERTY_FILE: ${{ secrets.ANDROID_KEY_PROPERTIES }}
@@ -56,7 +56,7 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '17'
-      - name: Configure Gradle plugin repositories
+      - name: 配置 Gradle 插件仓库
         run: |
           mkdir -p ~/.gradle/init.d
           cat > ~/.gradle/init.d/plugin-repositories.gradle <<'EOF'
@@ -68,26 +68,26 @@ jobs:
               }
           }
           EOF
-      - name: Check rust-toolchain.toml
+      - name: 检查 rust-toolchain.toml
         run: rustup show
       - run: flutter pub get --enforce-lockfile
       - run: flutter build apk --release
-      - name: Upload APK (armeabi-v7a)
+      - name: 上传 APK (armeabi-v7a)
         uses: actions/upload-artifact@v5
         with:
           name: apk-armeabi-v7a
           path: build/app/outputs/apk/release/*armeabi-v7a*.apk
-      - name: Upload APK (arm64-v8a)
+      - name: 上传 APK (arm64-v8a)
         uses: actions/upload-artifact@v5
         with:
           name: apk-arm64-v8a
           path: build/app/outputs/apk/release/*arm64-v8a*.apk
-      - name: Upload APK (x86_64)
+      - name: 上传 APK (x86_64)
         uses: actions/upload-artifact@v5
         with:
           name: apk-x86_64
           path: build/app/outputs/apk/release/*x86_64*.apk
-      - name: Upload APK (universal)
+      - name: 上传 APK (universal)
         uses: actions/upload-artifact@v5
         with:
           name: apk-universal
@@ -98,32 +98,32 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Install dependencies
+      - name: 安装依赖
         run: |
           choco install yq -y
           pip install httpx
-      - name: Install Inno Setup
+      - name: 安装 Inno Setup
         run: choco install innosetup --no-progress
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           flutter-version-file: pubspec.yaml
           architecture: x64
-      - name: Build Windows installer
+      - name: 构建 Windows 安装包
         run: |
           flutter pub get --enforce-lockfile
           python windows/build.py
-      - name: Validate Windows artifacts
+      - name: 校验 Windows 构建产物
         shell: pwsh
         run: |
           $zip = @(Get-ChildItem -Path build/windows -File -Filter 'VeneraNext-*-windows.zip')
           $installer = @(Get-ChildItem -Path build/windows -File -Filter 'VeneraNext-*-windows-installer.exe')
-          if ($zip.Count -ne 1) { throw "Expected one Windows zip, found $($zip.Count)." }
-          if ($installer.Count -ne 1) { throw "Expected one Windows installer, found $($installer.Count)." }
+          if ($zip.Count -ne 1) { throw "应当恰好生成一个 Windows zip，实际为 $($zip.Count)。" }
+          if ($installer.Count -ne 1) { throw "应当恰好生成一个 Windows 安装包，实际为 $($installer.Count)。" }
           $artifacts = @($zip + $installer)
           $empty = @($artifacts | Where-Object { $_.Length -le 0 })
           if ($empty.Count -gt 0) {
-            throw "Windows artifacts contain empty files: $($empty.Name -join ', ')"
+            throw "Windows 构建产物包含空文件：$($empty.Name -join ', ')"
           }
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $expectedRoot = [System.IO.Path]::GetFileNameWithoutExtension($zip[0].Name)
@@ -133,11 +133,11 @@ jobs:
               -not $_.FullName.StartsWith("$expectedRoot/") -and $_.FullName -ne "$expectedRoot/"
             })
             if ($badEntries.Count -gt 0) {
-              throw "Windows zip contains files outside $expectedRoot/: $($badEntries.FullName -join ', ')"
+              throw "Windows zip 包含 $expectedRoot/ 之外的文件：$($badEntries.FullName -join ', ')"
             }
             $exeEntry = @($archive.Entries | Where-Object { $_.FullName -eq "$expectedRoot/VeneraNext.exe" })
             if ($exeEntry.Count -ne 1) {
-              throw "Windows zip does not contain $expectedRoot/VeneraNext.exe"
+              throw "Windows zip 未包含 $expectedRoot/VeneraNext.exe"
             }
           } finally {
             $archive.Dispose()
@@ -163,23 +163,23 @@ jobs:
           architecture: x64
       - run: sudo xcode-select --switch /Applications/Xcode_16.4.app
       - run: flutter pub get --enforce-lockfile
-      - name: Check rust-toolchain.toml
+      - name: 检查 rust-toolchain.toml
         run: rustup show
-      - name: Build Flutter macOS App
+      - name: 构建 Flutter macOS 应用
         run: flutter build macos --release
-      - name: Create DMG
+      - name: 创建 DMG
         run: |
           mkdir -p dist
           mkdir -p dist/dmg_contents
           cp -R build/macos/Build/Products/Release/VeneraNext.app dist/dmg_contents/
           ln -s /Applications dist/dmg_contents/Applications
           hdiutil create -volname "VeneraNext" -srcfolder dist/dmg_contents -ov -format UDZO "dist/VeneraNext.dmg"
-      - name: Add version to filename
+      - name: 将版本号写入文件名
         run: |
           APP_VERSION=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | tr -d '\r\n')
           mkdir -p result
           mv dist/VeneraNext.dmg "result/VeneraNext-$APP_VERSION.dmg"
-      - name: Upload DMG
+      - name: 上传 DMG
         uses: actions/upload-artifact@v5
         with:
           name: macos_build
@@ -231,7 +231,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y ninja-build libgtk-3-dev webkit2gtk-4.1
           dart pub global activate -s git https://github.com/venera-app/flutter_to_debian.git
-      - name: Patch font
+      - name: 修补字体
         run: dart run patch/font.dart
       - run: python3 debian/build.py arm64
       - uses: actions/upload-artifact@v5
