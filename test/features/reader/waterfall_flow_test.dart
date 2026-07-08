@@ -114,5 +114,38 @@ void main() {
       expect(flow.imageCount, 2);
       expect(flow.segments, hasLength(1));
     });
+
+    test(
+      'resolves top-to-bottom current image as last image at scroll end',
+      () {
+        expect(
+          resolveFlowCurrentImageIndex(
+            visibleIndex: 8,
+            imageCount: 10,
+            isTopToBottom: true,
+            isAtScrollEnd: true,
+          ),
+          10,
+        );
+        expect(
+          resolveFlowCurrentImageIndex(
+            visibleIndex: 8,
+            imageCount: 10,
+            isTopToBottom: true,
+            isAtScrollEnd: false,
+          ),
+          8,
+        );
+        expect(
+          resolveFlowCurrentImageIndex(
+            visibleIndex: 8,
+            imageCount: 10,
+            isTopToBottom: false,
+            isAtScrollEnd: true,
+          ),
+          8,
+        );
+      },
+    );
   });
 }

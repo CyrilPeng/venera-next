@@ -1003,8 +1003,12 @@ class ContinuousModeState extends State<_ContinuousMode>
     if (itemPositionsListener.itemPositions.value.isEmpty) {
       return;
     }
-    var page = itemPositionsListener.itemPositions.value.first.index;
-    page = page.clamp(1, _flowImageCount);
+    var page = resolveFlowCurrentImageIndex(
+      visibleIndex: itemPositionsListener.itemPositions.value.first.index,
+      imageCount: _flowImageCount,
+      isTopToBottom: reader.mode.isTopToBottom,
+      isAtScrollEnd: _isAtScrollEnd,
+    );
     var imageRef = _imageRefAt(page);
     if (imageRef == null) return;
     if (crossChapter) {
@@ -1023,6 +1027,15 @@ class ContinuousModeState extends State<_ContinuousMode>
       _ensureWaterfallImagesBefore(page);
       _ensureWaterfallImagesAfter(page);
     }
+  }
+
+  bool get _isAtScrollEnd {
+    final controller = _scrollController;
+    if (controller == null || !controller.hasClients) {
+      return false;
+    }
+    final position = controller.position;
+    return position.pixels >= position.maxScrollExtent - 1;
   }
 
   double? _futurePosition;
