@@ -82,11 +82,33 @@ abstract class CBZ {
   }
 
   static Future<void> extractArchive(File file, Directory out) async {
+    await extractArchiveForTesting(file, out);
+  }
+
+  static Future<void> extractArchiveForTesting(
+    File file,
+    Directory out, {
+    Future<void> Function(String archivePath, String outputPath, int threads)?
+    zipExtractor,
+    Future<void> Function(String archivePath, String outputPath, int threads)?
+    sevenZipExtractor,
+  }) async {
+    final zipExtract = zipExtractor ?? ZipFile.openAndExtractAsync;
+    final sevenZipExtract = sevenZipExtractor ?? SZArchive.extractIsolates;
     var fileType = await checkType(file);
     if (fileType.mime == 'application/zip') {
-      await ZipFile.openAndExtractAsync(file.path, out.path, 4);
+      try {
+        await zipExtract(file.path, out.path, 4);
+      } catch (e) {
+        Log.warning(
+          "CBZ",
+          "Failed to extract ZIP archive with zip_flutter, retry with 7z: $e",
+        );
+        await out.deleteContents();
+        await sevenZipExtract(file.path, out.path, 4);
+      }
     } else if (fileType.mime == "application/x-7z-compressed") {
-      await SZArchive.extractIsolates(file.path, out.path, 4);
+      await sevenZipExtract(file.path, out.path, 4);
     } else {
       throw Exception('Unsupported archive type');
     }

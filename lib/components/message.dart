@@ -19,26 +19,34 @@ void showToast({
   Widget? trailing,
   int? seconds,
 }) {
-  var newEntry = OverlayEntry(
-    builder: (context) =>
-        _ToastOverlay(message: message, icon: icon, trailing: trailing),
-  );
-
   var state = context.findAncestorStateOfType<OverlayWidgetState>();
 
-  state?.addOverlay(newEntry);
-
-  Timer(Duration(seconds: seconds ?? 2), () => state?.remove(newEntry));
+  state?.showToast(
+    message: message,
+    icon: icon,
+    trailing: trailing,
+    seconds: seconds,
+  );
 }
 
-class _ToastOverlay extends StatelessWidget {
-  const _ToastOverlay({required this.message, this.icon, this.trailing});
+class _ToastRecord {
+  _ToastRecord({required this.message, this.icon, this.trailing});
 
   final String message;
 
   final Widget? icon;
 
   final Widget? trailing;
+
+  final key = UniqueKey();
+
+  Timer? timer;
+}
+
+class _ToastStack extends StatelessWidget {
+  const _ToastStack({required this.toasts});
+
+  final List<_ToastRecord> toasts;
 
   @override
   Widget build(BuildContext context) {
@@ -52,43 +60,61 @@ class _ToastOverlay extends StatelessWidget {
       right: 0,
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Material(
-          color: Theme.of(context).colorScheme.inverseSurface,
-          borderRadius: BorderRadius.circular(8),
-          elevation: 2,
-          textStyle: ts.withColor(
-            Theme.of(context).colorScheme.onInverseSurface,
-          ),
-          child: IconTheme(
-            data: IconThemeData(
-              color: Theme.of(context).colorScheme.onInverseSurface,
-            ),
-            child: IntrinsicWidth(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 6,
-                  horizontal: 16,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < toasts.length; i++)
+              Padding(
+                key: toasts[i].key,
+                padding: EdgeInsets.only(
+                  bottom: i == toasts.length - 1 ? 0 : 8,
                 ),
-                constraints: BoxConstraints(maxWidth: context.width - 32),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) icon!.paddingRight(8),
-                    Expanded(
-                      child: Text(
-                        message,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (trailing != null) trailing!.paddingLeft(8),
-                  ],
-                ),
+                child: _ToastOverlay(toast: toasts[i]),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ToastOverlay extends StatelessWidget {
+  const _ToastOverlay({required this.toast});
+
+  final _ToastRecord toast;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.inverseSurface,
+      borderRadius: BorderRadius.circular(8),
+      elevation: 2,
+      textStyle: ts.withColor(Theme.of(context).colorScheme.onInverseSurface),
+      child: IconTheme(
+        data: IconThemeData(
+          color: Theme.of(context).colorScheme.onInverseSurface,
+        ),
+        child: IntrinsicWidth(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            constraints: BoxConstraints(maxWidth: context.width - 32),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (toast.icon != null) toast.icon!.paddingRight(8),
+                Expanded(
+                  child: Text(
+                    toast.message,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (toast.trailing != null) toast.trailing!.paddingLeft(8),
+              ],
             ),
           ),
         ),
@@ -111,6 +137,56 @@ class OverlayWidgetState extends State<OverlayWidget> {
 
   var entries = <OverlayEntry>[];
 
+  OverlayEntry? _toastEntry;
+
+  final _toasts = <_ToastRecord>[];
+
+  void showToast({
+    required String message,
+    Widget? icon,
+    Widget? trailing,
+    int? seconds,
+  }) {
+    if (overlayKey.currentState == null) {
+      return;
+    }
+    final toast = _ToastRecord(
+      message: message,
+      icon: icon,
+      trailing: trailing,
+    );
+    toast.timer = Timer(
+      Duration(seconds: seconds ?? 2),
+      () => _removeToast(toast),
+    );
+    _toasts.add(toast);
+    _ensureToastEntry();
+    _toastEntry?.markNeedsBuild();
+  }
+
+  void _ensureToastEntry() {
+    if (_toastEntry != null) {
+      return;
+    }
+    _toastEntry = OverlayEntry(
+      builder: (context) => _ToastStack(toasts: List.of(_toasts)),
+    );
+    overlayKey.currentState!.insert(_toastEntry!);
+  }
+
+  void _removeToast(_ToastRecord toast) {
+    toast.timer?.cancel();
+    if (!_toasts.remove(toast)) {
+      return;
+    }
+    if (_toasts.isEmpty) {
+      _toastEntry?.remove();
+      _toastEntry = null;
+    } else {
+      _toastEntry?.markNeedsBuild();
+    }
+  }
+
   void addOverlay(OverlayEntry entry) {
     if (overlayKey.currentState != null) {
       overlayKey.currentState!.insert(entry);
@@ -129,6 +205,15 @@ class OverlayWidgetState extends State<OverlayWidget> {
       entry.remove();
     }
     entries.clear();
+    for (var toast in List.of(_toasts)) {
+      _removeToast(toast);
+    }
+  }
+
+  @override
+  void dispose() {
+    removeAll();
+    super.dispose();
   }
 
   @override

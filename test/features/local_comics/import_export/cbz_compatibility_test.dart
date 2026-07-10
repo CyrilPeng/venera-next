@@ -140,5 +140,43 @@ void main() {
         }
       },
     );
+
+    test(
+      'extractArchiveForTesting retries zip extraction with 7z fallback',
+      () async {
+        final temp = Directory.systemTemp.createTempSync('cbz_extract_');
+        try {
+          final archive = File(FilePath.join(temp.path, 'legacy.cbz'))
+            ..writeAsBytesSync([0x50, 0x4B, 0x03, 0x04]);
+          final out = Directory(FilePath.join(temp.path, 'out'))..createSync();
+          final calls = <String>[];
+
+          await CBZ.extractArchiveForTesting(
+            archive,
+            out,
+            zipExtractor: (archivePath, outputPath, threads) async {
+              calls.add('zip');
+              File(
+                FilePath.join(outputPath, 'partial.jpg'),
+              ).writeAsBytesSync([1]);
+              throw const FormatException('Missing extension byte', null, 24);
+            },
+            sevenZipExtractor: (archivePath, outputPath, threads) async {
+              calls.add('7z');
+              expect(
+                File(FilePath.join(outputPath, 'partial.jpg')).existsSync(),
+                isFalse,
+              );
+              File(FilePath.join(outputPath, '001.jpg')).writeAsBytesSync([1]);
+            },
+          );
+
+          expect(calls, ['zip', '7z']);
+          expect(File(FilePath.join(out.path, '001.jpg')).existsSync(), isTrue);
+        } finally {
+          temp.deleteSync(recursive: true);
+        }
+      },
+    );
   });
 }
