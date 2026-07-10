@@ -9,8 +9,10 @@ import 'package:venera_next/components/pop_up_widget.dart';
 import 'package:venera_next/components/scroll.dart';
 import 'package:venera_next/features/history/history.dart';
 import 'package:venera_next/features/local_comics/local_comics.dart';
+import 'package:venera_next/features/comic_source/comic_source.dart';
 import 'package:venera_next/features/settings/setting_components.dart';
 import 'package:venera_next/features/sync/sync.dart';
+import 'package:venera_next/features/webdav_library/webdav_library.dart';
 import 'package:venera_next/foundation/app.dart';
 import 'package:venera_next/foundation/appdata.dart';
 import 'package:venera_next/foundation/cache_manager.dart';
@@ -175,6 +177,16 @@ class _AppSettingsState extends State<AppSettings> {
           subtitle: "This is only used for CBZ archive backup and restore.".tl,
           callback: () async {
             showPopUpWidget(context, const _BackupWebdavSetting());
+          },
+          actionTitle: 'Set'.tl,
+        ).toSliver(),
+        CallbackSetting(
+          title: "WebDAV Comic Library".tl,
+          subtitle:
+              "Online reading uses directory image structure only; CBZ is kept for archive backup and restore."
+                  .tl,
+          callback: () async {
+            showPopUpWidget(context, const _WebDavComicLibrarySetting());
           },
           actionTitle: 'Set'.tl,
         ).toSliver(),
@@ -697,5 +709,201 @@ class _BackupWebdavSettingState extends State<_BackupWebdavSetting> {
       context.showMessage(message: "Saved".tl);
       App.rootPop();
     }
+  }
+}
+
+class _WebDavComicLibrarySetting extends StatefulWidget {
+  const _WebDavComicLibrarySetting();
+
+  @override
+  State<_WebDavComicLibrarySetting> createState() =>
+      _WebDavComicLibrarySettingState();
+}
+
+class _WebDavComicLibrarySettingState
+    extends State<_WebDavComicLibrarySetting> {
+  late final TextEditingController _urlController;
+  late final TextEditingController _userController;
+  late final TextEditingController _passController;
+  late final TextEditingController _remotePathController;
+  bool isTesting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final config = WebDavLibraryConfig.fromSettings();
+    _urlController = TextEditingController(text: config.url);
+    _userController = TextEditingController(text: config.user);
+    _passController = TextEditingController(text: config.pass);
+    _remotePathController = TextEditingController(text: config.remotePath);
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _userController.dispose();
+    _passController.dispose();
+    _remotePathController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopUpWidgetScaffold(
+      title: "WebDAV Comic Library".tl,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "URL",
+                hintText: "A valid WebDav directory URL".tl,
+                border: OutlineInputBorder(),
+              ),
+              controller: _urlController,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Username".tl,
+                border: const OutlineInputBorder(),
+              ),
+              controller: _userController,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Password".tl,
+                border: const OutlineInputBorder(),
+              ),
+              controller: _passController,
+              obscureText: true,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Remote Path".tl,
+                hintText: "/venera_comics/",
+                border: const OutlineInputBorder(),
+              ),
+              controller: _remotePathController,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Online reading uses directory image structure only; CBZ is kept for archive backup and restore."
+                          .tl,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Button.outlined(
+                    isLoading: isTesting,
+                    onPressed: testConnection,
+                    child: Text("Test Connection".tl),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Button.filled(
+                    isLoading: isTesting,
+                    onPressed: save,
+                    child: Text("Continue".tl),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ).paddingHorizontal(16),
+      ),
+    );
+  }
+
+  WebDavLibraryConfig get currentConfig => WebDavLibraryConfig(
+    url: _urlController.text,
+    user: _userController.text,
+    pass: _passController.text,
+    remotePath: _remotePathController.text,
+  );
+
+  Future<void> testConnection() async {
+    if (isTesting) return;
+    setState(() {
+      isTesting = true;
+    });
+    final result = await WebDavLibrarySource.testConnection(currentConfig);
+    if (!mounted) return;
+    setState(() {
+      isTesting = false;
+    });
+    if (result.error) {
+      context.showMessage(message: result.errorMessage!.tl);
+    } else {
+      context.showMessage(message: "Connection successful".tl);
+    }
+  }
+
+  Future<void> save() async {
+    if (isTesting) return;
+    final config = currentConfig;
+    if (!config.isValid && config.user.isEmpty && config.pass.isEmpty) {
+      await WebDavLibraryConfig.saveToSettings(config);
+      _refreshWebDavLibrarySource(enabled: false);
+      if (!mounted) return;
+      context.showMessage(message: "Saved".tl);
+      App.rootPop();
+      return;
+    }
+    setState(() {
+      isTesting = true;
+    });
+    final result = await WebDavLibrarySource.testConnection(config);
+    if (!mounted) return;
+    setState(() {
+      isTesting = false;
+    });
+    if (result.error) {
+      context.showMessage(message: result.errorMessage!);
+      context.showMessage(message: "Saved Failed".tl);
+    } else {
+      await WebDavLibraryConfig.saveToSettings(config);
+      _refreshWebDavLibrarySource(enabled: true);
+      if (!mounted) return;
+      context.showMessage(message: "Saved".tl);
+      App.rootPop();
+    }
+  }
+
+  void _refreshWebDavLibrarySource({required bool enabled}) {
+    final manager = ComicSourceManager();
+    manager.remove(WebDavLibrarySource.sourceKey);
+    final pages = List<String>.from(appdata.settings['explore_pages']);
+    pages.remove(WebDavLibrarySource.explorePageTitle);
+    if (enabled) {
+      manager.add(WebDavLibrarySource.create());
+      pages.add(WebDavLibrarySource.explorePageTitle);
+    }
+    appdata.settings['explore_pages'] = pages;
+    appdata.saveData(false);
   }
 }

@@ -31,6 +31,7 @@ This document is the English companion for the repository structure rules. The C
 - `search/`: home search entry, search page, result page, aggregate search, and search query filters.
 - `settings/`: settings pages, reader settings, reusable setting controls, and domain-specific setting pages.
 - `sync/`: WebDAV data sync, home sync status, app data import/export, and local comic backup/restore.
+- `webdav_library/`: WebDAV comic library online reading source for remote directory image structures.
 
 New domains should generally follow this shape:
 
@@ -43,7 +44,7 @@ test/features/<domain>/
   <domain>_test.dart
 ```
 
-External modules should prefer stable feature entry files instead of importing implementation files directly. For example, external code should use `features/reader/reader.dart` for reader capabilities and `features/comic_source/comic_source.dart` for comic source capabilities.
+External modules should prefer stable feature entry files instead of importing implementation files directly. For example, external code should use `features/reader/reader.dart` for reader capabilities, `features/comic_source/comic_source.dart` for comic source capabilities, and `features/webdav_library/webdav_library.dart` for the WebDAV online comic library source.
 
 ## App Shell And Runtime
 

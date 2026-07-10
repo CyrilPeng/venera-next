@@ -74,6 +74,8 @@ class Appdata with Init {
     "webdavProxyEnabled",
     "backupWebdav",
     "backupWebdavPath",
+    "webdavComicLibrary",
+    "webdavComicLibraryPath",
     "disableSyncFields",
     "deviceId",
     "lastSyncTime",
@@ -231,6 +233,8 @@ class Settings with ChangeNotifier {
     'backupWebdav': [], // empty means not configured
     'backupWebdavPath': '/venera_backup/',
     'backupWebdavSyncEnabled': false,
+    'webdavComicLibrary': [], // empty means not configured
+    'webdavComicLibraryPath': '/venera_comics/',
     "disableSyncFields": "", // "field1, field2, ..."
     'dataVersion': 0,
     'quickFavorite': null,

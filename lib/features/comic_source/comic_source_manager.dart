@@ -5,6 +5,7 @@ import 'package:venera_next/foundation/file_system.dart';
 import 'package:venera_next/foundation/init.dart';
 import 'package:venera_next/foundation/js_engine.dart';
 import 'package:venera_next/foundation/log.dart';
+import 'package:venera_next/features/webdav_library/webdav_library.dart';
 
 import 'category.dart';
 import 'comic_type_bridge.dart';
@@ -124,21 +125,24 @@ class ComicSourceManager with ChangeNotifier, Init {
     await JsEngine().ensureInit();
     final path = "${App.dataPath}/comic_source";
     if (!(await Directory(path).exists())) {
-      Directory(path).create();
-      return;
-    }
-    await for (var entity in Directory(path).list()) {
-      if (entity is File && entity.path.endsWith(".js")) {
-        try {
-          var source = await ComicSourceParser().parse(
-            await entity.readAsString(),
-            entity.absolute.path,
-          );
-          _sources.add(source);
-        } catch (e, s) {
-          Log.error("ComicSource", "$e\n$s");
+      await Directory(path).create();
+    } else {
+      await for (var entity in Directory(path).list()) {
+        if (entity is File && entity.path.endsWith(".js")) {
+          try {
+            var source = await ComicSourceParser().parse(
+              await entity.readAsString(),
+              entity.absolute.path,
+            );
+            _sources.add(source);
+          } catch (e, s) {
+            Log.error("ComicSource", "$e\n$s");
+          }
         }
       }
+    }
+    if (WebDavLibraryConfig.fromSettings().isValid) {
+      _sources.add(WebDavLibrarySource.create());
     }
   }
 

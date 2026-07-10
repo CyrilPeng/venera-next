@@ -62,7 +62,7 @@ comic_directory
 
 VeneraNext 支持从压缩包导入漫画。
 
-压缩包应符合 [Comic Book Archive](https://en.wikipedia.org/wiki/Comic_book_archive_file) 格式。
+压缩包适合作为导入、导出、归档、迁移和分发格式，应符合 [Comic Book Archive](https://en.wikipedia.org/wiki/Comic_book_archive_file) 格式。
 
 当前支持以下压缩包格式：
 
@@ -86,3 +86,25 @@ VeneraNext 支持从压缩包导入漫画。
 ```
 
 如果根目录没有 `cover.[ext]`，应用会使用第一章的第一张图片作为封面。
+
+## WebDAV 在线漫画库
+
+WebDAV 漫画库是在线阅读渠道，和本地导入导出、WebDAV CBZ 归档是不同能力。
+
+在线阅读只支持远端目录图片结构，应用会按需列目录和加载图片，不会把远端 CBZ/ZIP/7Z 当作在线预览内容。
+
+推荐结构：
+
+```text
+/venera_comics/
+└── 猫之眼[北条司]
+    ├── cover.jpg
+    ├── 第01卷
+    │   ├── 001.jpg
+    │   └── 002.jpg
+    └── 第02卷
+        ├── 001.jpg
+        └── 002.jpg
+```
+
+CBZ/ZIP/7Z 仍然可以通过 WebDAV 归档功能上传、下载和恢复，但它们属于备份与分发格式，不用于在线阅读。
