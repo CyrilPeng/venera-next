@@ -220,6 +220,10 @@ class Settings with ChangeNotifier {
     'enableTapToTurnPages': true,
     'reverseTapToTurnPages': false,
     'enablePageAnimation': true,
+    'eInkRefreshEnabled': false,
+    'eInkRefreshDuration': 100, // milliseconds
+    'eInkRefreshInterval': 1, // page changes
+    'eInkRefreshStyle': 'black', // black, white, whiteThenBlack
     'language': 'system', // system, zh-CN, zh-TW, en-US
     'cacheSize': 2048, // in MB
     'historyRetentionDays': 0, // 0 means disabled

@@ -396,6 +396,7 @@ class SliderSetting extends StatefulWidget {
     this.comicId,
     this.comicSource,
     this.useDeviceSettings = false,
+    this.valueFormatter,
   });
 
   final String title;
@@ -415,6 +416,8 @@ class SliderSetting extends StatefulWidget {
   final String? comicSource;
 
   final bool useDeviceSettings;
+
+  final String Function(double value)? valueFormatter;
 
   @override
   State<SliderSetting> createState() => _SliderSettingState();
@@ -436,7 +439,10 @@ class _SliderSettingState extends State<SliderSetting> {
             .toDouble();
     return ListTile(
       title: Text(widget.title, softWrap: true, maxLines: 2),
-      trailing: Text(value.toString(), style: ts.s12),
+      trailing: Text(
+        widget.valueFormatter?.call(value) ?? value.toString(),
+        style: ts.s12,
+      ),
       subtitle: Slider(
         value: value,
         onChanged: (value) {

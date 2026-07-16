@@ -232,6 +232,82 @@ class _ReaderSettingsState extends State<ReaderSettings> {
           comicSource: isEnabledSpecificSettings ? widget.comicSource : null,
           useDeviceSettings: useDeviceSpecificSettings,
         ).toSliver(),
+        SwitchSetting(
+          title: "E-Ink display refresh".tl,
+          subtitle:
+              "Flash the screen after page changes to reduce ghosting on E-Ink displays. Only applies to Gallery modes."
+                  .tl,
+          settingKey: "eInkRefreshEnabled",
+          onChanged: () {
+            setState(() {});
+            widget.onChanged?.call("eInkRefreshEnabled");
+          },
+          comicId: isEnabledSpecificSettings ? widget.comicId : null,
+          comicSource: isEnabledSpecificSettings ? widget.comicSource : null,
+          useDeviceSettings: useDeviceSpecificSettings,
+        ).toSliver(),
+        SliverAnimatedVisibility(
+          visible:
+              _readerSettingValue(
+                'eInkRefreshEnabled',
+                isEnabledSpecificSettings: isEnabledSpecificSettings,
+                useDeviceSpecificSettings: useDeviceSpecificSettings,
+              ) ==
+              true,
+          child: Column(
+            children: [
+              SliderSetting(
+                title: "Refresh flash duration".tl,
+                settingsIndex: "eInkRefreshDuration",
+                interval: 100,
+                min: 100,
+                max: 1500,
+                valueFormatter: (value) => '${value.toInt()} ms',
+                onChanged: () {
+                  widget.onChanged?.call("eInkRefreshDuration");
+                },
+                comicId: isEnabledSpecificSettings ? widget.comicId : null,
+                comicSource: isEnabledSpecificSettings
+                    ? widget.comicSource
+                    : null,
+                useDeviceSettings: useDeviceSpecificSettings,
+              ),
+              SliderSetting(
+                title: "Refresh interval".tl,
+                settingsIndex: "eInkRefreshInterval",
+                interval: 1,
+                min: 1,
+                max: 10,
+                valueFormatter: (value) => value.toInt().toString(),
+                onChanged: () {
+                  widget.onChanged?.call("eInkRefreshInterval");
+                },
+                comicId: isEnabledSpecificSettings ? widget.comicId : null,
+                comicSource: isEnabledSpecificSettings
+                    ? widget.comicSource
+                    : null,
+                useDeviceSettings: useDeviceSpecificSettings,
+              ),
+              SelectSetting(
+                title: "Refresh flash style".tl,
+                settingKey: "eInkRefreshStyle",
+                optionTranslation: {
+                  "black": "Black".tl,
+                  "white": "White".tl,
+                  "whiteThenBlack": "White then black".tl,
+                },
+                onChanged: () {
+                  widget.onChanged?.call("eInkRefreshStyle");
+                },
+                comicId: isEnabledSpecificSettings ? widget.comicId : null,
+                comicSource: isEnabledSpecificSettings
+                    ? widget.comicSource
+                    : null,
+                useDeviceSettings: useDeviceSpecificSettings,
+              ),
+            ],
+          ),
+        ),
         SelectSetting(
           title: "Reading mode".tl,
           settingKey: "readerMode",

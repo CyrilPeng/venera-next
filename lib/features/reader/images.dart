@@ -411,22 +411,33 @@ class GalleryModeState extends State<_GalleryMode>
           );
         },
         onPageChanged: (i) {
+          var shouldRefreshEInk = false;
           if (i == 0) {
             if (reader.isFirstChapterOfGroup ||
                 !reader.toPrevChapter(toLastPage: true)) {
               controller.jumpToPage(1);
+            } else {
+              shouldRefreshEInk = true;
             }
           } else if (i == totalPages + 1) {
             if (reader.isLastChapterOfGroup || !reader.toNextChapter()) {
               controller.jumpToPage(totalPages);
+            } else {
+              shouldRefreshEInk = true;
             }
           } else {
+            final previousPage = reader.page;
             reader.setPage(i);
             context.readerScaffold.update();
+            shouldRefreshEInk =
+                reader.page != previousPage && !isChapterCommentsPage(i);
             // Auto close toolbar when entering chapter comments page
             if (isChapterCommentsPage(i) && context.readerScaffold.isOpen) {
               context.readerScaffold.openOrClose();
             }
+          }
+          if (shouldRefreshEInk) {
+            context.readerScaffold.requestEInkRefresh();
           }
           // Remove other pages' controllers to reset their state.
           var keys = photoViewControllers.keys.toList();

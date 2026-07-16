@@ -12,6 +12,7 @@ import 'package:venera_next/features/comic_source/comic_source.dart';
 import 'package:venera_next/features/history/history.dart';
 import 'package:venera_next/features/reader/chapter_comments.dart';
 import 'package:venera_next/features/reader/chapters.dart';
+import 'package:venera_next/features/reader/eink_refresh.dart';
 import 'package:venera_next/features/reader/gesture.dart';
 import 'package:venera_next/features/reader/images.dart';
 import 'package:venera_next/features/reader/reader_page.dart';
@@ -39,6 +40,8 @@ class ReaderScaffold extends StatefulWidget {
 
 class ReaderScaffoldState extends State<ReaderScaffold> {
   bool _isOpen = false;
+
+  final EInkRefreshController _eInkRefreshController = EInkRefreshController();
 
   static const kTopBarHeight = 56.0;
 
@@ -128,6 +131,7 @@ class ReaderScaffoldState extends State<ReaderScaffold> {
 
   @override
   void dispose() {
+    _eInkRefreshController.dispose();
     sliderFocus.dispose();
     super.dispose();
   }
@@ -151,6 +155,43 @@ class ReaderScaffoldState extends State<ReaderScaffold> {
 
   void update() {
     setState(() {});
+  }
+
+  void requestEInkRefresh() {
+    if (!mounted || !context.reader.mode.isGallery) {
+      return;
+    }
+
+    final settings = appdata.settings;
+    final comicId = context.reader.cid;
+    final sourceKey = context.reader.type.sourceKey;
+    final enabled = settings.getReaderSetting(
+      comicId,
+      sourceKey,
+      'eInkRefreshEnabled',
+    );
+    if (enabled != true) {
+      _eInkRefreshController.reset();
+      return;
+    }
+
+    _eInkRefreshController.onPageChanged(
+      interval:
+          (settings.getReaderSetting(comicId, sourceKey, 'eInkRefreshInterval')
+                  as num)
+              .round(),
+      durationMilliseconds:
+          (settings.getReaderSetting(comicId, sourceKey, 'eInkRefreshDuration')
+                  as num)
+              .round(),
+      style: EInkRefreshStyle.fromKey(
+        settings.getReaderSetting(comicId, sourceKey, 'eInkRefreshStyle'),
+      ),
+    );
+  }
+
+  void resetEInkRefreshCounter() {
+    _eInkRefreshController.reset();
   }
 
   @override
@@ -190,6 +231,9 @@ class ReaderScaffoldState extends State<ReaderScaffold> {
           left: 0,
           right: 0,
           child: buildBottom(),
+        ),
+        Positioned.fill(
+          child: EInkRefreshOverlay(controller: _eInkRefreshController),
         ),
       ],
     );
@@ -739,6 +783,9 @@ class ReaderScaffoldState extends State<ReaderScaffold> {
           }
           if (key == "quickCollectImage") {
             addDragListener();
+          }
+          if (key.startsWith('eInkRefresh')) {
+            resetEInkRefreshCounter();
           }
           if (key == "showChapterComments" ||
               key == "showChapterCommentsAtEnd") {
