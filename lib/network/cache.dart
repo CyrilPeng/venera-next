@@ -200,6 +200,10 @@ class NetworkCacheManager implements Interceptor {
     if (response.statusCode != null && response.statusCode! >= 400) {
       return handler.next(response);
     }
+    if (isMalformedExpectedJsonResponse(response)) {
+      removeCache(response.requestOptions.uri);
+      return handler.next(response);
+    }
     var size = _calculateSize(response.data);
     if (size != null && size < 1024 * 1024 && size > 0) {
       var cache = NetworkCache(

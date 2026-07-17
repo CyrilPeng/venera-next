@@ -25,6 +25,7 @@ import 'package:uuid/uuid.dart';
 import 'package:venera_next/foundation/app.dart';
 import 'package:venera_next/foundation/js_pool.dart';
 import 'package:venera_next/network/app_dio.dart';
+import 'package:venera_next/network/cache.dart';
 import 'package:venera_next/network/cookie_jar.dart';
 import 'package:venera_next/network/proxy.dart';
 import 'package:venera_next/foundation/init.dart';
@@ -333,12 +334,40 @@ class JsEngine with _JSEngineApi, Init {
     return _engine!.evaluate(js, name: name);
   }
 
+  Future<dynamic> runReadCode(String js, [String? name]) async {
+    try {
+      return await runCode(js, name);
+    } catch (error) {
+      if (!_isRetryableReadSyntaxError(error)) {
+        rethrow;
+      }
+      Log.warning(
+        'JS Engine',
+        'Retrying a read-only source call after a JavaScript syntax error: '
+            '$error',
+      );
+      NetworkCacheManager().clear();
+      await Future.delayed(const Duration(milliseconds: 200));
+      return await runCode(js, name);
+    }
+  }
+
+  @visibleForTesting
+  static bool debugIsRetryableReadSyntaxError(Object error) {
+    return _isRetryableReadSyntaxError(error);
+  }
+
   void dispose() {
     _cache = null;
     _closed = true;
     _engine?.close();
     _engine?.port.close();
   }
+}
+
+bool _isRetryableReadSyntaxError(Object error) {
+  final message = error.toString().toLowerCase();
+  return message.contains('syntaxerror') || message.contains('syntax error');
 }
 
 mixin class _JSEngineApi {

@@ -520,7 +520,7 @@ let Network = {
      * @returns {Promise<{status: number, headers: {}, body: string}>} The response from the request.
      */
     async get(url, headers, extra) {
-        return this.sendRequest('GET', url, headers, extra);
+        return this.sendRequest('GET', url, headers, null, extra);
     },
 
     /**
@@ -567,7 +567,7 @@ let Network = {
      * @returns {Promise<{status: number, headers: {}, body: string}>} The response from the request.
      */
     async delete(url, headers, extra) {
-        return this.sendRequest('DELETE', url, headers, extra);
+        return this.sendRequest('DELETE', url, headers, null, extra);
     },
 
     /**
@@ -637,7 +637,20 @@ async function fetch(url, options) {
         headers: result.headers,
         arrayBuffer: async () => result.body,
         text: async () => Convert.decodeUtf8(result.body),
-        json: async () => JSON.parse(Convert.decodeUtf8(result.body)),
+        json: async () => {
+            const body = Convert.decodeUtf8(result.body);
+            try {
+                return JSON.parse(body);
+            } catch (error) {
+                const contentType = result.headers['content-type'] || 'unknown';
+                const safeUrl = String(url).split(/[?#]/, 1)[0];
+                const detail = error && error.message ? error.message : String(error);
+                throw new SyntaxError(
+                    `Invalid JSON response from ${safeUrl} ` +
+                    `(HTTP ${result.status}, Content-Type ${contentType}): ${detail}`
+                );
+            }
+        },
     }
 }
 

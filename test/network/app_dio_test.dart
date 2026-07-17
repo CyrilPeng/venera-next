@@ -11,6 +11,88 @@ import 'package:venera_next/network/app_dio.dart';
 import 'package:venera_next/network/cookie_jar.dart';
 
 void main() {
+  group('JSON response validation', () {
+    Response<dynamic> response({
+      required Object? data,
+      Map<String, dynamic> requestHeaders = const {},
+      Map<String, List<String>> responseHeaders = const {},
+      String path = 'https://example.com/api',
+      int statusCode = 200,
+    }) {
+      return Response<dynamic>(
+        requestOptions: RequestOptions(path: path, headers: requestHeaders),
+        data: data,
+        headers: Headers.fromMap(responseHeaders),
+        statusCode: statusCode,
+      );
+    }
+
+    test('rejects malformed JSON when the response declares JSON', () {
+      final result = isMalformedExpectedJsonResponse(
+        response(
+          data: '<html>temporary gateway response</html>',
+          responseHeaders: {
+            Headers.contentTypeHeader: ['application/json; charset=utf-8'],
+          },
+        ),
+      );
+
+      expect(result, isTrue);
+    });
+
+    test('rejects malformed JSON when the request accepts JSON', () {
+      final result = isMalformedExpectedJsonResponse(
+        response(
+          data: '{"items":',
+          requestHeaders: {'Accept': 'application/json'},
+          responseHeaders: {
+            Headers.contentTypeHeader: ['text/plain'],
+          },
+        ),
+      );
+
+      expect(result, isTrue);
+    });
+
+    test('accepts valid JSON and ordinary HTML responses', () {
+      expect(
+        isMalformedExpectedJsonResponse(
+          response(
+            data: '{"items":[]}',
+            responseHeaders: {
+              Headers.contentTypeHeader: ['application/json'],
+            },
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        isMalformedExpectedJsonResponse(
+          response(
+            data: '<html>comic page</html>',
+            responseHeaders: {
+              Headers.contentTypeHeader: ['text/html; charset=utf-8'],
+            },
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('allows empty no-content responses', () {
+      expect(
+        isMalformedExpectedJsonResponse(
+          response(
+            data: '',
+            requestHeaders: {'Accept': 'application/json'},
+            statusCode: 204,
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
+
   test('prevent-parallel queues requests with the same path', () async {
     final dio = AppDio();
     final adapter = _TrackingAdapter();
