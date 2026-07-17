@@ -10,6 +10,7 @@ English index: [README.en.md](README.en.md)
 |---|---|---|
 | `api/` | 开发 API、扩展接口、脚本接口 | 中英文双版本 |
 | `architecture/` | 仓库结构、模块边界、架构约定 | 中英文双版本，中文为默认维护入口 |
+| `development/` | 本地开发、构建、测试和开发故障排查 | 中英文双版本，中文为默认维护入口 |
 | `distribution/` | 发布、分发、包管理器和工作流维护 | 中英文双版本，中文为默认维护入口 |
 | `user/` | 用户使用说明、导入格式、命令行用法 | 中英文双版本 |
 | `experiments/` | 实验设计、任务跟踪、技术预研 | 中文即可，不作为正式路线图承诺 |
@@ -22,6 +23,10 @@ English index: [README.en.md](README.en.md)
 ## 架构和结构
 
 - [项目结构约定](architecture/project_structure.zh.md) / [Project Structure](architecture/project_structure.en.md)
+
+## 开发和构建
+
+- [构建与开发](development/build.zh.md) / [Build and Development](development/build.en.md)
 
 ## 分发和发布
 

@@ -10,6 +10,7 @@ This is the English companion index for `doc/`. Documents are grouped by type an
 |---|---|---|
 | `api/` | Developer APIs, extension interfaces, script contracts | Chinese and English |
 | `architecture/` | Repository structure, module boundaries, architecture rules | Chinese and English; Chinese is the default maintenance entry |
+| `development/` | Local development, builds, testing, and developer troubleshooting | Chinese and English; Chinese is the default maintenance entry |
 | `distribution/` | Release, distribution, package manager, and workflow notes | Chinese and English; Chinese is the default maintenance entry |
 | `user/` | User guides, import formats, command-line usage | Chinese and English |
 | `experiments/` | Experiments, task tracking, technical research | Chinese only; not a public roadmap commitment |
@@ -22,6 +23,10 @@ This is the English companion index for `doc/`. Documents are grouped by type an
 ## Architecture
 
 - [项目结构约定](architecture/project_structure.zh.md) / [Project Structure](architecture/project_structure.en.md)
+
+## Development and Builds
+
+- [构建与开发](development/build.zh.md) / [Build and Development](development/build.en.md)
 
 ## Distribution
 
