@@ -2,9 +2,9 @@ import 'package:venera_next/foundation/app.dart';
 import 'package:venera_next/foundation/res.dart';
 import 'package:venera_next/foundation/appdata.dart';
 import 'package:venera_next/features/local_comics/local_comics.dart';
-import 'package:venera_next/network/app_dio.dart';
 import 'package:venera_next/features/local_comics/import_export/import_export.dart';
 import 'package:venera_next/foundation/file_system.dart';
+import 'package:venera_next/network/webdav.dart';
 import 'package:webdav_client/webdav_client.dart' hide File;
 
 /// WebDAV archive backup configuration for local comic CBZ files.
@@ -14,17 +14,22 @@ class BackupConfig {
     required String user,
     required String pass,
     required String remotePath,
-  }) : url = url.trim(),
-       user = user.trim(),
-       pass = pass.trim(),
-       remotePath = _normalizedPath(remotePath);
+  }) : endpoint = WebDavEndpoint(url: url, user: user, password: pass),
+       remotePath = normalizeWebDavDirectoryPath(
+         remotePath,
+         fallback: '/venera_backup/',
+       );
 
-  final String url;
-  final String user;
-  final String pass;
+  final WebDavEndpoint endpoint;
   final String remotePath;
 
-  bool get isValid => url.trim().isNotEmpty;
+  String get url => endpoint.url;
+
+  String get user => endpoint.user;
+
+  String get pass => endpoint.password;
+
+  bool get isValid => endpoint.isValid;
 
   static BackupConfig fromSettings() {
     final config = appdata.settings['backupWebdav'];
@@ -60,14 +65,8 @@ class BackupConfig {
     await appdata.saveData(false);
   }
 
-  String remoteFilePath(String fileName) => '$remotePath$fileName';
-
-  static String _normalizedPath(String path) {
-    var result = path.trim().replaceAll('\\', '/');
-    if (result.isEmpty) result = '/venera_backup/';
-    if (!result.startsWith('/')) result = '/$result';
-    if (!result.endsWith('/')) result = '$result/';
-    return result;
+  String remoteFilePath(String fileName) {
+    return joinWebDavFilePath(remotePath, fileName);
   }
 }
 
@@ -123,12 +122,7 @@ abstract class ComicBackupWebDavOps {
 
 class _WebDavComicBackupOps implements ComicBackupWebDavOps {
   Client _client(BackupConfig config) {
-    return newClient(
-      config.url,
-      user: config.user,
-      password: config.pass,
-      adapter: RHttpAdapter(),
-    );
+    return config.endpoint.createClient();
   }
 
   @override

@@ -7,7 +7,7 @@ import 'package:venera_next/foundation/extensions.dart';
 import 'package:venera_next/foundation/log.dart';
 import 'package:venera_next/foundation/res.dart';
 import 'package:venera_next/foundation/throttled_task_runner.dart';
-import 'package:venera_next/network/app_dio.dart';
+import 'package:venera_next/network/webdav.dart';
 import 'package:webdav_client/webdav_client.dart' hide File;
 
 class WebDavLibraryConfig {
@@ -16,23 +16,24 @@ class WebDavLibraryConfig {
     required String user,
     required String pass,
     required String remotePath,
-  }) : url = url.trim(),
-       user = user.trim(),
-       pass = pass.trim(),
-       remotePath = _normalizedPath(remotePath);
+  }) : endpoint = WebDavEndpoint(url: url, user: user, password: pass),
+       remotePath = normalizeWebDavDirectoryPath(
+         remotePath,
+         fallback: '/venera_comics/',
+       );
 
-  final String url;
-  final String user;
-  final String pass;
+  final WebDavEndpoint endpoint;
   final String remotePath;
 
-  bool get isValid => url.isNotEmpty;
+  String get url => endpoint.url;
 
-  Map<String, String> get authHeaders {
-    if (user.isEmpty && pass.isEmpty) return const {};
-    final token = base64Encode(utf8.encode('$user:$pass'));
-    return {'authorization': 'Basic $token'};
-  }
+  String get user => endpoint.user;
+
+  String get pass => endpoint.password;
+
+  bool get isValid => endpoint.isValid;
+
+  Map<String, String> get authHeaders => endpoint.authHeaders;
 
   static WebDavLibraryConfig fromSettings() {
     final config = appdata.settings['webdavComicLibrary'];
@@ -73,44 +74,14 @@ class WebDavLibraryConfig {
   }
 
   String childFilePath(String parent, String name) {
-    final path = _normalizeRelativePath(name);
-    return '${_ensureTrailingSlash(parent)}$path';
+    return joinWebDavFilePath(parent, name);
   }
 
   String childDirectoryPathFrom(String parent, String name) {
-    final path = _normalizeRelativePath(name);
-    return '${_ensureTrailingSlash(parent)}$path/';
+    return joinWebDavDirectoryPath(parent, name);
   }
 
-  String fileUrl(String remoteFilePath) {
-    final base = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-    final path = remoteFilePath
-        .split('/')
-        .where((segment) => segment.isNotEmpty)
-        .map(Uri.encodeComponent)
-        .join('/');
-    return '$base/$path';
-  }
-
-  static String _normalizedPath(String path) {
-    var result = path.trim().replaceAll('\\', '/');
-    if (result.isEmpty) result = '/venera_comics/';
-    if (!result.startsWith('/')) result = '/$result';
-    if (!result.endsWith('/')) result = '$result/';
-    return result;
-  }
-
-  static String _ensureTrailingSlash(String path) {
-    return path.endsWith('/') ? path : '$path/';
-  }
-
-  static String _normalizeRelativePath(String value) {
-    return value
-        .replaceAll('\\', '/')
-        .split('/')
-        .where((segment) => segment.isNotEmpty)
-        .join('/');
-  }
+  String fileUrl(String remoteFilePath) => endpoint.fileUrl(remoteFilePath);
 }
 
 class WebDavLibraryEntry {
@@ -133,12 +104,7 @@ abstract class WebDavLibraryOps {
 
 class _WebDavLibraryOps implements WebDavLibraryOps {
   Client _client(WebDavLibraryConfig config) {
-    return newClient(
-      config.url,
-      user: config.user,
-      password: config.pass,
-      adapter: RHttpAdapter(),
-    );
+    return config.endpoint.createClient();
   }
 
   @override

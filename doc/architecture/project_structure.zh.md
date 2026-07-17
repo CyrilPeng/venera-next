@@ -16,7 +16,7 @@
 - 文件路径、文件名清洗、目录复制、文件系统扩展和大小格式化等基础文件能力应直接引用 `foundation/file_system.dart`，避免通过平台文件交互入口绕行。
 - 文件选择、目录选择、文件保存、分享和 Android SAF IO override 等平台文件交互应归入 `foundation/file_interaction.dart`；`utils/io.dart` 已退场，不再作为导出入口。
 - 通用 Dart 扩展通过 `foundation/extensions.dart` 对外暴露；具体 List、String、Future 和 nullable collection 转换实现放在 `foundation/extensions/` 下。
-- `network/` 放通用网络、缓存、请求和文件传输基础设施。业务下载任务与接口封装应放在所属功能域中。
+- `network/` 放通用网络、缓存、请求和文件传输基础设施；`network/webdav.dart` 统一 WebDAV 端点、认证、客户端创建和远端路径规则。业务下载任务与接口封装应放在所属功能域中。
 - `foundation/image_provider` 只保留通用图片加载基础设施；依赖具体业务模型、缓存目录或功能域管理器的 provider 应放在所属 `features/<domain>/`。
 
 ## `lib/features`

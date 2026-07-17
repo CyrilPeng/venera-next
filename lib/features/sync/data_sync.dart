@@ -10,10 +10,9 @@ import 'package:venera_next/features/favorites/favorites.dart';
 import 'package:venera_next/features/history/history.dart';
 import 'package:venera_next/foundation/log.dart';
 import 'package:venera_next/foundation/res.dart';
-import 'package:venera_next/network/app_dio.dart';
+import 'package:venera_next/network/webdav.dart';
 import 'package:venera_next/features/sync/app_data_transfer.dart';
 import 'package:venera_next/foundation/extensions.dart';
-import 'package:webdav_client/webdav_client.dart' hide File;
 import 'package:venera_next/foundation/translations.dart';
 import 'package:venera_next/foundation/file_system.dart';
 
@@ -184,18 +183,22 @@ class DataSync with ChangeNotifier {
     return autoSync && config is List && config.isNotEmpty;
   }
 
-  List<String>? _validateConfig() {
+  WebDavEndpoint? _validateConfig() {
     var config = appdata.settings['webdav'];
     if (config is! List) {
       return null;
     }
     if (config.isEmpty) {
-      return [];
+      return WebDavEndpoint(url: '', user: '', password: '');
     }
     if (config.length != 3 || config.whereType<String>().length != 3) {
       return null;
     }
-    return List.from(config);
+    return WebDavEndpoint(
+      url: config[0] as String,
+      user: config[1] as String,
+      password: config[2] as String,
+    );
   }
 
   Future<Res<bool>> uploadData() async {
@@ -295,19 +298,10 @@ class DataSync with ChangeNotifier {
       _lastError = 'Invalid WebDAV configuration';
       return const Res.error('Invalid WebDAV configuration');
     }
-    if (config.isEmpty) {
+    if (!config.isValid) {
       return const Res(true);
     }
-    String url = config[0];
-    String user = config[1];
-    String pass = config[2];
-
-    var client = newClient(
-      url,
-      user: user,
-      password: pass,
-      adapter: RHttpAdapter(),
-    );
+    var client = config.createClient();
 
     try {
       appdata.settings['dataVersion']++;
@@ -353,19 +347,10 @@ class DataSync with ChangeNotifier {
       _lastError = 'Invalid WebDAV configuration';
       return const Res.error('Invalid WebDAV configuration');
     }
-    if (config.isEmpty) {
+    if (!config.isValid) {
       return const Res(true);
     }
-    String url = config[0];
-    String user = config[1];
-    String pass = config[2];
-
-    var client = newClient(
-      url,
-      user: user,
-      password: pass,
-      adapter: RHttpAdapter(),
-    );
+    var client = config.createClient();
 
     try {
       var files = await client.readDir('/');

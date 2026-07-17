@@ -12,7 +12,7 @@ This document is the English companion for the repository structure rules. The C
 - Do not add new source files under `pages/`; app-level entry points belong in `app_shell/`, and business pages belong in the corresponding feature domain.
 - `foundation/` contains cross-domain application foundations, including app state, initialization protocols, async queues, Dart extensions, constants, logging, localization, file system helpers, image processing, image provider bases, platform channels, and shared data infrastructure.
 - `components/` contains reusable UI components. Components that only serve one business domain should live inside that feature domain.
-- `network/` contains general network, cache, request, and file transfer infrastructure. Business-specific download tasks and API wrappers should remain in their owning feature domain.
+- `network/` contains general network, cache, request, and file transfer infrastructure. `network/webdav.dart` owns shared WebDAV endpoints, authentication, client creation, and remote path rules. Business-specific download tasks and API wrappers should remain in their owning feature domain.
 
 ## Feature Domains
 
