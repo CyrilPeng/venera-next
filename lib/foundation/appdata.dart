@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:venera_next/foundation/app.dart';
 import 'package:venera_next/foundation/file_system.dart';
@@ -126,7 +125,7 @@ class Appdata with Init {
     var json = toJson();
     var data = jsonEncode(json);
     var file = File(FilePath.join(App.dataPath, 'appdata.json'));
-    futures.add(file.writeAsString(data));
+    futures.add(_writeTextAtomically(file, data));
 
     var disableSyncFields = json["settings"]["disableSyncFields"] as String;
     if (disableSyncFields.isNotEmpty) {
@@ -137,7 +136,7 @@ class Appdata with Init {
       }
       var data4sync = jsonEncode(json4sync);
       var file4sync = File(FilePath.join(App.dataPath, 'syncdata.json'));
-      futures.add(file4sync.writeAsString(data4sync));
+      futures.add(_writeTextAtomically(file4sync, data4sync));
     }
 
     await Future.wait(futures);
@@ -147,45 +146,183 @@ class Appdata with Init {
     unawaited(
       _enqueueWrite(() async {
         var file = File(FilePath.join(App.dataPath, 'implicitData.json'));
-        await file.writeAsString(jsonEncode(implicitData));
+        await _writeTextAtomically(file, jsonEncode(implicitData));
       }),
     );
   }
 
   @override
   Future<void> doInit() async {
-    var dataPath = (await getApplicationSupportDirectory()).path;
-    var file = File(FilePath.join(dataPath, 'appdata.json'));
-    if (!await file.exists()) {
-      return;
-    }
-    try {
-      var json = jsonDecode(await file.readAsString());
-      for (var key in (json['settings'] as Map<String, dynamic>).keys) {
-        if (json['settings'][key] != null) {
-          settings[key] = json['settings'][key];
-        }
-      }
-      searchHistory = List.from(json['searchHistory']);
-    } catch (e) {
-      Log.error("Appdata", "Failed to load appdata", e);
-      Log.info("Appdata", "Resetting appdata");
-      file.deleteIgnoreError();
-    }
+    var dataPath = App.dataPath;
+    await _loadAppData(dataPath);
     if ((settings["deviceId"] as String).isEmpty) {
       settings._data["deviceId"] = const Uuid().v4();
       await saveData(false);
     }
-    try {
-      var implicitDataFile = File(FilePath.join(dataPath, 'implicitData.json'));
-      if (await implicitDataFile.exists()) {
-        implicitData = jsonDecode(await implicitDataFile.readAsString());
+    await _loadImplicitData(dataPath);
+  }
+
+  @visibleForTesting
+  Future<void> loadDataForTesting(String dataPath) => _loadAppData(dataPath);
+
+  Future<void> _loadAppData(String dataPath) async {
+    final primary = File(FilePath.join(dataPath, 'appdata.json'));
+    final candidates = [
+      primary,
+      File('${primary.path}.bak'),
+      File(FilePath.join(dataPath, 'syncdata.json')),
+    ];
+    File? loadedFrom;
+    var primaryInvalid = false;
+
+    for (final candidate in candidates) {
+      if (!await candidate.exists()) {
+        continue;
       }
-    } catch (e) {
-      Log.error("Appdata", "Failed to load implicit data", e);
-      Log.info("Appdata", "Resetting implicit data");
-      var implicitDataFile = File(FilePath.join(dataPath, 'implicitData.json'));
-      implicitDataFile.deleteIgnoreError();
+      try {
+        final decoded = _decodeAppData(await candidate.readAsString());
+        for (final entry in decoded.settings.entries) {
+          if (entry.value != null) {
+            settings[entry.key] = entry.value;
+          }
+        }
+        searchHistory = decoded.searchHistory;
+        loadedFrom = candidate;
+        break;
+      } catch (error, stackTrace) {
+        Log.error(
+          "Appdata",
+          "Failed to load ${candidate.path}",
+          '$error\n$stackTrace',
+        );
+        if (candidate.path == primary.path) {
+          primaryInvalid = true;
+        }
+      }
+    }
+
+    if (loadedFrom == null) {
+      if (primaryInvalid) {
+        await _preserveCorruptFile(primary);
+      }
+      return;
+    }
+    if (loadedFrom.path == primary.path) {
+      return;
+    }
+
+    if (primaryInvalid) {
+      await _preserveCorruptFile(primary);
+    }
+    await _writeTextAtomically(
+      primary,
+      await loadedFrom.readAsString(),
+      createBackup: false,
+    );
+    Log.info("Appdata", "Recovered appdata from ${loadedFrom.path}");
+  }
+
+  ({Map<String, dynamic> settings, List<String> searchHistory}) _decodeAppData(
+    String content,
+  ) {
+    final decoded = jsonDecode(content);
+    if (decoded is! Map) {
+      throw const FormatException('Appdata root must be an object');
+    }
+    final rawSettings = decoded['settings'];
+    if (rawSettings is! Map) {
+      throw const FormatException('Appdata settings must be an object');
+    }
+    final normalizedSettings = <String, dynamic>{};
+    for (final entry in rawSettings.entries) {
+      if (entry.key is String) {
+        normalizedSettings[entry.key as String] = entry.value;
+      }
+    }
+
+    final rawSearchHistory = decoded['searchHistory'];
+    if (rawSearchHistory != null && rawSearchHistory is! List) {
+      throw const FormatException('Appdata searchHistory must be a list');
+    }
+    return (
+      settings: normalizedSettings,
+      searchHistory: rawSearchHistory == null
+          ? <String>[]
+          : rawSearchHistory.whereType<String>().toList(),
+    );
+  }
+
+  Future<void> _loadImplicitData(String dataPath) async {
+    final primary = File(FilePath.join(dataPath, 'implicitData.json'));
+    final candidates = [primary, File('${primary.path}.bak')];
+    for (final candidate in candidates) {
+      if (!await candidate.exists()) {
+        continue;
+      }
+      try {
+        final decoded = jsonDecode(await candidate.readAsString());
+        if (decoded is! Map) {
+          throw const FormatException('Implicit data root must be an object');
+        }
+        implicitData = Map<String, dynamic>.from(decoded);
+        if (candidate.path != primary.path) {
+          await _preserveCorruptFile(primary);
+          await _writeTextAtomically(
+            primary,
+            await candidate.readAsString(),
+            createBackup: false,
+          );
+          Log.info("Appdata", "Recovered implicit data from ${candidate.path}");
+        }
+        return;
+      } catch (error, stackTrace) {
+        Log.error(
+          "Appdata",
+          "Failed to load ${candidate.path}",
+          '$error\n$stackTrace',
+        );
+      }
+    }
+    if (await primary.exists()) {
+      await _preserveCorruptFile(primary);
+    }
+  }
+
+  Future<void> _writeTextAtomically(
+    File target,
+    String content, {
+    bool createBackup = true,
+  }) async {
+    await target.parent.create(recursive: true);
+    final temporary = File('${target.path}.tmp');
+    await temporary.writeAsString(content, flush: true);
+
+    try {
+      if (createBackup && await target.exists()) {
+        await target.copy('${target.path}.bak');
+      }
+      try {
+        await temporary.rename(target.path);
+      } on FileSystemException {
+        await target.deleteIgnoreError();
+        await temporary.rename(target.path);
+      }
+    } finally {
+      await temporary.deleteIgnoreError();
+    }
+  }
+
+  Future<void> _preserveCorruptFile(File file) async {
+    if (!await file.exists()) {
+      return;
+    }
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final destination = '${file.path}.corrupt-$timestamp';
+    try {
+      await file.rename(destination);
+      Log.warning("Appdata", "Preserved invalid data as $destination");
+    } catch (error, stackTrace) {
+      Log.error("Appdata", "Failed to preserve ${file.path}", stackTrace);
     }
   }
 }

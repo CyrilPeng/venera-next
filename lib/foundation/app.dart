@@ -58,8 +58,13 @@ class _App {
 
   final Appdata data = appdata;
 
-  static const _legacyWindowsCompanyDirectory = 'CyrilPeng_venera-next';
   static const _windowsCompanyDirectory = 'com.github.cyrilpeng';
+  static const _windowsProductDirectory = 'VeneraNext';
+  static const _legacyWindowsDirectories = [
+    ('CyrilPeng_venera-next', 'VeneraNext'),
+    ('CyrilPeng_venera-next', 'venera'),
+    ('com.github.wgh136', 'venera'),
+  ];
 
   void rootPop() {
     rootNavigatorKey.currentState?.maybePop();
@@ -96,38 +101,29 @@ class _App {
     final normalizedCurrentPath = p.normalize(currentPath);
     final appDirectoryName = p.basename(normalizedCurrentPath);
     final companyDirectory = p.basename(p.dirname(normalizedCurrentPath));
-    if (companyDirectory != _windowsCompanyDirectory) {
+    if (companyDirectory != _windowsCompanyDirectory ||
+        appDirectoryName != _windowsProductDirectory) {
       return;
     }
 
     final baseDirectory = p.dirname(p.dirname(normalizedCurrentPath));
-    final legacyPath = p.join(
-      baseDirectory,
-      _legacyWindowsCompanyDirectory,
-      appDirectoryName,
-    );
-    if (p.equals(p.normalize(legacyPath), normalizedCurrentPath)) {
-      return;
-    }
-
-    final legacyDirectory = Directory(legacyPath);
-    if (!await legacyDirectory.exists()) {
-      return;
-    }
-
     final currentDirectory = Directory(normalizedCurrentPath);
-    if (await currentDirectory.exists()) {
-      if (!await currentDirectory.list(followLinks: false).isEmpty) {
-        return;
-      }
-    } else {
+    if (!await currentDirectory.exists()) {
       await currentDirectory.create(recursive: true);
     }
 
-    await _copyDirectoryContents(legacyDirectory, currentDirectory);
+    for (final (company, product) in _legacyWindowsDirectories) {
+      final legacyDirectory = Directory(
+        p.join(baseDirectory, company, product),
+      );
+      if (!await legacyDirectory.exists()) {
+        continue;
+      }
+      await _copyMissingDirectoryContents(legacyDirectory, currentDirectory);
+    }
   }
 
-  Future<void> _copyDirectoryContents(
+  Future<void> _copyMissingDirectoryContents(
     Directory source,
     Directory destination,
   ) async {
@@ -138,10 +134,13 @@ class _App {
     await for (final entity in source.list(followLinks: false)) {
       final targetPath = p.join(destination.path, p.basename(entity.path));
       if (entity is Directory) {
-        await _copyDirectoryContents(entity, Directory(targetPath));
+        await _copyMissingDirectoryContents(entity, Directory(targetPath));
       } else if (entity is File) {
-        await File(targetPath).parent.create(recursive: true);
-        await entity.copy(targetPath);
+        final target = File(targetPath);
+        if (!await target.exists()) {
+          await target.parent.create(recursive: true);
+          await entity.copy(targetPath);
+        }
       }
     }
   }
